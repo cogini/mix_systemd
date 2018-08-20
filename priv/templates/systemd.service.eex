@@ -1,0 +1,73 @@
+[Unit]
+Description=<%= app %>
+After=local-fs.target network.target
+
+# https://www.freedesktop.org/software/systemd/man/systemd.exec.html
+# https://hexdocs.pm/distillery/use-with-systemd.html
+# https://github.com/systemd/systemd/blob/master/NEWS
+
+[Service]
+Type=simple
+User=<%= app_user %>
+Group=<%= app_group %>
+WorkingDirectory=<%= release_path %>
+ExecStart=<%= release_path %>/bin/<%= app %> foreground
+ExecStop=<%= release_path %>/bin/<%= app %> stop
+Environment=LANG=<%= env_lang %>
+Environment=MIX_ENV=<%= mix_env %>
+Environment=RELEASE_MUTABLE_DIR=<%= release_mutable_dir %>
+Environment=PORT=<%= env_port %>
+<%= if conform do %>
+Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
+<% end %>
+# systemd ignores /etc/security/limits
+LimitNOFILE=<%= limit_nofile %>
+UMask=<%= umask %>
+SyslogIdentifier=<%= service_name %>
+Restart=always
+RestartSec=<%= restart_sec %>
+# PermissionsStartOnly=true
+RuntimeDirectory=<%= runtime_directory %>
+RuntimeDirectoryMode=<%= runtime_directory_mode %>
+<%= if systemd_version >= 235 do %>
+RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
+ConfigurationDirectory=<%= configuration_directory %>
+ConfigurationDirectoryMode=<%= configuration_directory_mode %>
+LogsDirectory=<%= logs_directory %>
+LogsDirectoryMode=<%= logs_directory_mode %>
+StateDirectory=<%= state_directory %>
+StateDirectoryMode=<%= state_directory_mode %>
+<% end %>
+<%= if chroot do %>
+RootDirectory=<%= root_directory %>
+<%= if length(read_write_paths) > 0 do %>ReadWritePaths=<%= Enum.join(read_write_paths, " ") %><% end %>
+<%= if length(read_only_paths) > 0 do %>ReadOnlyPaths=<%= Enum.join(read_only_paths, " ") %><% end %>
+<%= if length(inaccessible_paths) > 0 do %>InaccessiblePaths=<%= Enum.join(inaccessible_paths, " ") %><% end %>
+<% end %>
+<%= if paranoia do %>
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+<%= if systemd_version >= 232 do %>
+PrivateUsers=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+<% end %>
+<%= if systemd_version >= 233 do %>MountAPIVFS=yes<% end %>
+
+# RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# SELinuxContext=
+# AppArmorProfile=
+# SmackProcessLabel=
+<% end %>
+# KillMode=process # default control-group
+# TimeoutSec=10
+# RemainAfterExit=no
+# https://elixirforum.com/t/distillery-node-is-not-running-and-non-zero-exit-code/3834
+# SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
