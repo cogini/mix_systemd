@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Systemd.Unit do
   @moduledoc """
-  Create systemd unit file for Elixir project.
+  Create systemd unit files for Elixir project.
 
   ## Command line options
 
@@ -30,11 +30,12 @@ defmodule Mix.Tasks.Systemd.Unit do
     config = config()
 
     build_path = Mix.Project.build_path()
-    write_template(config, Path.join(build_path, "systemd/lib/systemd/system"), "systemd.service", "#{config[:service_name]}.service")
+    dest_dir = Path.join(build_path, "systemd/lib/systemd/system")
+    write_template(config, dest_dir, "systemd.service", "#{config[:service_name]}.service")
 
-    if config[:restart_path] do
-      write_template(config, Path.join(build_path, "systemd/lib/systemd/system"), "restart.service", "#{config[:service_name]}-restart.service")
-      write_template(config, Path.join(build_path, "systemd/lib/systemd/system"), "restart.path", "#{config[:service_name]}-restart.path")
+    if config[:restart_flag] do
+      write_template(config, dest_dir, "restart.service", "#{config[:service_name]}-restart.service")
+      write_template(config, dest_dir, "restart.path", "#{config[:service_name]}-restart.path")
     end
 
   end
@@ -96,6 +97,10 @@ defmodule Mix.Tasks.Systemd.Unit do
       # Enable extra restrictions
       paranoia: false,
 
+      # Enable restart from flag file
+      restart_flag: false,
+      restart_path: "#{base_path}/restart.flag",
+
       app: project_config[:app],
       # systemd service name corresponding to app name
       # This is used to name the service files and directories
@@ -144,26 +149,27 @@ defmodule Mix.Tasks.Systemd.Unit do
     ]
 
     Keyword.merge(defaults, config)
-
   end
 
   @spec write_template(Keyword.t, Path.t, String.t) :: :ok
   def write_template(config, target_path, template) do
     :ok = File.mkdir_p(target_path)
-    {:ok, data} = template(template, config)
+    {:ok, data} = template_name(template, config)
     :ok = File.write(Path.join(target_path, template), data)
   end
 
   @spec write_template(Keyword.t, Path.t, String.t, Path.t) :: :ok
   def write_template(config, target_path, template, filename) do
     :ok = File.mkdir_p(target_path)
-    {:ok, data} = template(template, config)
+    {:ok, data} = template_name(template, config)
     :ok = File.write(Path.join(target_path, filename), data)
   end
 
-  def template(name, params \\ []) do
+  @spec template_name(Path.t, Keyword.t) :: {:ok, String.t} | {:error, term}
+  def template_name(name, params \\ []) do
     template_name = "#{name}.eex"
-    override_path = Path.join([@template_dir, template_name])
+    template_path = params[:template_path] || @template_dir
+    override_path = Path.join([template_path, template_name])
     if File.exists?(override_path) do
       template_path(override_path)
     else
@@ -173,7 +179,8 @@ defmodule Mix.Tasks.Systemd.Unit do
     end
   end
 
-  @spec template_path(String.t(), Keyword.t()) :: {:ok, String.t()} | {:error, term}
+  @doc "Eval template with params"
+  @spec template_path(String.t, Keyword.t) :: {:ok, String.t} | {:error, term}
   def template_path(template_path, params \\ []) do
     {:ok, EEx.eval_file(template_path, params, [trim: true])}
   rescue
