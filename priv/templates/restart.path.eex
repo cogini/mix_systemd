@@ -1,0 +1,9 @@
+# https://www.freedesktop.org/software/systemd/man/systemd.path.html
+
+[Path]
+PathModified=<%= restart_path %>
+# MakeDirectory=true
+# DirectoryMode=0750
+
+[Install]
+WantedBy=multi-user.target

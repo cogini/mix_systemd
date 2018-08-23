@@ -32,6 +32,11 @@ defmodule Mix.Tasks.Systemd.Unit do
     build_path = Mix.Project.build_path()
     write_template(config, Path.join(build_path, "systemd/lib/systemd/system"), "systemd.service", "#{config[:service_name]}.service")
 
+    if config[:restart_path] do
+      write_template(config, Path.join(build_path, "systemd/lib/systemd/system"), "restart.service", "#{config[:service_name]}-restart.service")
+      write_template(config, Path.join(build_path, "systemd/lib/systemd/system"), "restart.path", "#{config[:service_name]}-restart.path")
+    end
+
   end
 
   @doc false
