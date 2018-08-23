@@ -7,7 +7,17 @@ defmodule MixSystemd.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      mix_systemd: [
+        # Enable restart from flag file
+        restart_flag: true,
+        # Enable conform config file
+        conform: true,
+        # Enable chroot
+        chroot: true,
+        # Enable extra restrictions
+        paranoia: true,
+      ],
     ]
   end
 
