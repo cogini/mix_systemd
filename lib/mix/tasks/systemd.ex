@@ -85,7 +85,7 @@ defmodule Mix.Tasks.Systemd.Unit do
 
     env_port = config[:env_port] || 4000
 
-    base_path = "/srv/#{service_name}"
+    base_path = config[:base_path] || "/srv/#{service_name}"
     release_path = "#{base_path}/current"
 
     defaults = [
