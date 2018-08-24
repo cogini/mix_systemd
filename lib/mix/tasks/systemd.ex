@@ -114,7 +114,7 @@ defmodule Mix.Tasks.Systemd.Unit do
       base_path: base_path,
       # Directory where release will be extracted on target
       release_path: release_path,
-      conform_conf_path: "/etc/#{service_name}/conform.conf",
+      conform_conf_path: "/etc/#{service_name}/#{app_name}.conf",
       # Directory writable by app user, used for temp files, e.g. conform
       release_mutable_dir: "/run/#{service_name}",
 
