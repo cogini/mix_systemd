@@ -8,10 +8,10 @@ defmodule Mix.Tasks.Systemd.Unit do
 
   ## Usage
 
-      # Creates revision from current release with MIX_ENV=dev (the default)
+      # Create systemd unit files with MIX_ENV=dev (the default)
       mix systemd.unit
 
-      # Builds a release with MIX_ENV=prod
+      # Create unit files with MIX_ENV=prod
       MIX_ENV=prod mix systemd.unit
   """
   @shortdoc "Create systemd unit file"
@@ -153,16 +153,16 @@ defmodule Mix.Tasks.Systemd.Unit do
 
   @spec write_template(Keyword.t, Path.t, String.t) :: :ok
   def write_template(config, target_path, template) do
-    :ok = File.mkdir_p(target_path)
-    {:ok, data} = template_name(template, config)
-    :ok = File.write(Path.join(target_path, template), data)
+    write_template(config, target_path, template, template)
   end
 
   @spec write_template(Keyword.t, Path.t, String.t, Path.t) :: :ok
   def write_template(config, target_path, template, filename) do
     :ok = File.mkdir_p(target_path)
     {:ok, data} = template_name(template, config)
-    :ok = File.write(Path.join(target_path, filename), data)
+    output_path = Path.join(target_path, filename)
+    Mix.shell.info "Creating #{output_path} from template #{template}"
+    :ok = File.write(output_path, data)
   end
 
   @spec template_name(Path.t, Keyword.t) :: {:ok, String.t} | {:error, term}
