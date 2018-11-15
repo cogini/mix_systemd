@@ -8,15 +8,12 @@ defmodule MixSystemd.MixProject do
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      mix_systemd: [
-        # Enable restart from flag file
-        restart_flag: true,
-        # Enable conform config file
-        conform: true,
-        # Enable chroot
-        chroot: true,
-        # Enable extra restrictions
-        paranoia: true,
+      dialyzer: [
+        plt_add_apps: [:mix, :eex]
+        # plt_add_deps: true,
+        # flags: ["-Werror_handling", "-Wrace_conditions"],
+        # flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs],
+        # ignore_warnings: "dialyzer.ignore-warnings"
       ],
     ]
   end
@@ -31,6 +28,7 @@ defmodule MixSystemd.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:dialyxir, "~> 0.5.1", only: [:dev, :test], runtime: false},
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
     ]

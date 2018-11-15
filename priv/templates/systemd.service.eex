@@ -1,5 +1,5 @@
 [Unit]
-Description=<%= app %>
+Description=<%= app_name %> service
 After=local-fs.target network.target
 
 # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
@@ -10,12 +10,12 @@ After=local-fs.target network.target
 Type=simple
 User=<%= app_user %>
 Group=<%= app_group %>
-WorkingDirectory=<%= release_path %>
-ExecStart=<%= release_path %>/bin/<%= app %> foreground
-ExecStop=<%= release_path %>/bin/<%= app %> stop
+WorkingDirectory=<%= current_dir %>
+ExecStart=<%= current_dir %>/bin/<%= app_name %> foreground
+ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
-Environment=RELEASE_MUTABLE_DIR=<%= release_mutable_dir %>
+Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
 Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
@@ -37,6 +37,8 @@ LogsDirectory=<%= logs_directory %>
 LogsDirectoryMode=<%= logs_directory_mode %>
 StateDirectory=<%= state_directory %>
 StateDirectoryMode=<%= state_directory_mode %>
+CacheDirectory=<%= cache_directory %>
+CacheDirectoryMode=<%= cache_directory_mode %>
 <% end %>
 <%= if chroot do %>
 RootDirectory=<%= root_directory %>

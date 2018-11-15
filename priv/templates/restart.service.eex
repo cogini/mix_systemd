@@ -1,5 +1,5 @@
 [Unit]
-Description=<%= app %> restarter
+Description=<%= service_name %> restarter
 After=local-fs.target
 
 [Service]
