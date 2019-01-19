@@ -134,7 +134,7 @@ defmodule Mix.Tasks.Systemd do
     # Data calculated from other things
     Keyword.merge([
       releases_dir: Path.join(cfg[:deploy_dir], "releases"),
-      scripts_dir: Path.join(cfg[:deploy_dir], "scripts"),
+      scripts_dir: Path.join(cfg[:deploy_dir], "bin"),
       flags_dir: Path.join(cfg[:deploy_dir], "flags"),
       current_dir: Path.join(cfg[:deploy_dir], "current"),
 
@@ -188,7 +188,7 @@ defmodule Mix.Tasks.Systemd.Init do
 
 end
 
-defmodule Mix.Tasks.Systemd.Unit do
+defmodule Mix.Tasks.Systemd.Generate do
   @moduledoc """
   Create systemd unit files for Elixir project.
 
@@ -199,10 +199,10 @@ defmodule Mix.Tasks.Systemd.Unit do
   ## Usage
 
       # Create systemd unit files with MIX_ENV=dev (the default)
-      mix systemd.unit
+      mix systemd.generate
 
-      # Create unit files with MIX_ENV=prod
-      MIX_ENV=prod mix systemd.unit
+      # Create unit files for prod
+      MIX_ENV=prod mix systemd.generate
   """
   @shortdoc "Create systemd unit file"
   use Mix.Task

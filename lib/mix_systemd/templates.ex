@@ -48,6 +48,4 @@ defmodule MixSystemd.Templates do
   # def template_name(name, vars \\ []) do
   #   template_file(Path.join(vars[:template_dir], "#{name}.eex"))
   # end
-
-
 end
