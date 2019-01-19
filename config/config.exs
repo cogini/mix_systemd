@@ -20,15 +20,15 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
-config :mix_systemd,
-  # Enable restart from flag file
-  restart_flag: true,
-  # Enable conform config file
-  conform: true,
-  # Enable chroot
-  chroot: true,
-  # Enable extra restrictions
-  paranoia: true
+# config :mix_systemd,
+#   # Enable restart from flag file
+#   restart_flag: true,
+#   # Enable conform config file
+#   conform: true,
+#   # Enable chroot
+#   chroot: true,
+#   # Enable extra restrictions
+#   paranoia: true
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

@@ -1,58 +1,12 @@
-defmodule Mix.Tasks.Systemd.Unit do
-  @moduledoc """
-  Create systemd unit files for Elixir project.
-
-  ## Command line options
-
-    * `--version` - selects a specific app version
-
-  ## Usage
-
-      # Create systemd unit files with MIX_ENV=dev (the default)
-      mix systemd.unit
-
-      # Create unit files with MIX_ENV=prod
-      MIX_ENV=prod mix systemd.unit
-  """
-  @shortdoc "Create systemd unit file"
-  use Mix.Task
-
-  alias MixSystemd.Templates
-
+defmodule Mix.Tasks.Systemd do
   # Name of app, used to get info from application environment
   @app :mix_systemd
 
   # Name of directory under build directory where module stores generated files
-  @output_dir "mix_systemd"
+  @output_dir "systemd"
 
-  # Name of directory where user can override templates
-  @template_override_dir "mix_systemd"
-
-  @spec run(OptionParser.argv()) :: no_return
-  def run(args) do
-    # Parse options
-    # opts = parse_args(args)
-    # verbosity = Keyword.get(opts, :verbosity)
-    # Shell.configure(verbosity)
-
-    cfg = parse_args(args)
-
-    dest_dir = Path.join([cfg[:build_path], @output_dir, "/lib/systemd/system"])
-    service_name = cfg[:service_name]
-
-    write_template(cfg, dest_dir, "systemd.service", "#{service_name}.service")
-
-    if cfg[:restart_flag] do
-      write_template(cfg, dest_dir, "restart.service", "#{service_name}-restart.service")
-      write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
-    end
-  end
-
-  defp write_template(cfg, dest_dir, template, file) do
-    target_file = Path.join(dest_dir, file)
-    Mix.shell.info "Generating #{target_file} from template #{template}"
-    Templates.write_template(cfg, dest_dir, template, file)
-  end
+  # User template directory
+  @template_dir "rel/templates/systemd"
 
   @spec parse_args(OptionParser.argv()) :: Keyword.t
   def parse_args(argv) do
@@ -105,6 +59,10 @@ defmodule Mix.Tasks.Systemd.Unit do
 
       #####
 
+      # These are the standard directory locations under systemd for various purposes.
+      # More recent versions of systemd will create directories if they don't exist.
+      # We default to modes which are tighter than the systemd default of 755.
+      # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
       cache_directory: service_name,
       cache_directory_base: "/var/cache",
       cache_directory_mode: "750",
@@ -128,14 +86,15 @@ defmodule Mix.Tasks.Systemd.Unit do
       mix_env: Mix.env(),
       # LANG environment var for running scripts
       env_lang: "en_US.UTF-8",
+      # Limit on open files
       limit_nofile: 65535,
       umask: "0027",
       restart_sec: 5,
 
-      # Elixir application name
+      # Elixir application name, an atom
       app_name: app_name,
 
-      # Name of files and directories
+      # External name, used for files and directories
       ext_name: ext_name,
 
       # Name of service
@@ -157,12 +116,12 @@ defmodule Mix.Tasks.Systemd.Unit do
       output_dir: Path.join(build_path, @output_dir),
 
       # Directory with templates which override defaults
-      template_dir: Path.join("templates", @template_override_dir),
+      template_dir: @template_dir,
     ]
 
     cfg = defaults
-             |> Keyword.merge(user_config)
-             |> Keyword.merge(overrides)
+          |> Keyword.merge(user_config)
+          |> Keyword.merge(overrides)
 
     # Default OS user and group names
     cfg = Keyword.merge([
@@ -196,88 +155,86 @@ defmodule Mix.Tasks.Systemd.Unit do
 
     ], cfg)
   end
+end
 
-  # @spec config() :: Keyword.t
-  # def config, do: config(Mix.Project.config())
+defmodule Mix.Tasks.Systemd.Init do
+  @moduledoc """
+  Initialize systemd template files.
 
-  # @spec config(Keyword.t) :: Keyword.t
-  # def config(project_config) do
-  #   config = project_config[:mix_systemd] || []
+  ## Command line options
 
-  #   app_name = to_string(project_config[:app])
-  #   service_name = config[:service_name] || String.replace(app_name, "_", "-")
-  #   app_user = config[:app_user] || service_name
-  #   deploy_user = config[:deploy_user] || service_name
+    * `--template_dir` - target directory
 
-  #   env_port = config[:env_port] || 4000
+  ## Usage
 
-  #   base_path = config[:base_path] || "/srv/#{service_name}"
-  #   release_path = "#{base_path}/current"
+      # Copy default templates into your project
+      mix systemd.init
+  """
+  @shortdoc "Initialize systemd template files"
+  use Mix.Task
 
-  #   defaults = [
-  #     # Options
-  #     # Enable conform config file
-  #     conform: false,
-  #     # Enable chroot
-  #     chroot: false,
-  #     # Enable extra restrictions
-  #     paranoia: false,
+  @app :mix_systemd
 
-  #     # Enable restart from flag file
-  #     restart_flag: false,
-  #     restart_path: "#{base_path}/restart.flag",
+  @spec run(OptionParser.argv()) :: no_return
+  def run(args) do
+    cfg = Mix.Tasks.Systemd.parse_args(args)
 
-  #     app: project_config[:app],
-  #     # systemd service name corresponding to app name
-  #     # This is used to name the service files and directories
-  #     service_name: service_name,
-  #     # Output directory base
-  #     build_path: Mix.Project.build_path(),
-  #     # Target systemd version
-  #     systemd_version: 235,
+    template_dir = cfg[:template_dir]
+    app_dir = Application.app_dir(@app, ["priv", "templates"])
 
-  #     # Base directory on target system
-  #     base_path: base_path,
-  #     # Directory where release will be extracted on target
-  #     release_path: release_path,
-  #     conform_conf_path: "/etc/#{service_name}/#{app_name}.conf",
-  #     # Directory writable by app user, used for temp files, e.g. conform
-  #     release_mutable_dir: "/run/#{service_name}",
+    :ok = File.mkdir_p(template_dir)
+    {:ok, _files} = File.cp_r(app_dir, template_dir)
+  end
 
-  #     # OS user accounts
-  #     app_user: app_user,
-  #     app_group: app_user,
-  #     deploy_user: deploy_user,
-  #     deploy_group: deploy_user,
+end
 
-  #     mix_env: Mix.env(),
-  #     env_lang: "en_US.UTF-8",
-  #     env_port: env_port,
-  #     limit_nofile: 65535,
-  #     umask: "0027",
-  #     restart_sec: 5,
+defmodule Mix.Tasks.Systemd.Unit do
+  @moduledoc """
+  Create systemd unit files for Elixir project.
 
-  #     runtime_directory: service_name,
-  #     runtime_directory_mode: "750",
-  #     runtime_directory_preserve: "no",
-  #     configuration_directory: service_name,
-  #     configuration_directory_mode: "750",
-  #     logs_directory: service_name,
-  #     logs_directory_mode: "750",
-  #     state_directory: service_name,
-  #     state_directory_mode: "750",
+  ## Command line options
 
-  #     # Chroot config
-  #     root_directory: release_path,
-  #     read_write_paths: [],
-  #     read_only_paths: [],
-  #     inaccessible_paths: [],
-  #   ]
+    * `--version` - selects a specific app version
 
-  #   Keyword.merge(defaults, config)
-  # end
+  ## Usage
 
-  # @doc false
+      # Create systemd unit files with MIX_ENV=dev (the default)
+      mix systemd.unit
+
+      # Create unit files with MIX_ENV=prod
+      MIX_ENV=prod mix systemd.unit
+  """
+  @shortdoc "Create systemd unit file"
+  use Mix.Task
+
+  alias MixSystemd.Templates
+
+  @spec run(OptionParser.argv()) :: no_return
+  def run(args) do
+    # Parse options
+    # opts = parse_args(args)
+    # verbosity = Keyword.get(opts, :verbosity)
+    # Shell.configure(verbosity)
+
+    cfg = Mix.Tasks.Systemd.parse_args(args)
+
+    dest_dir = Path.join([cfg[:output_dir], "/lib/systemd/system"])
+    service_name = cfg[:service_name]
+
+    write_template(cfg, dest_dir, "systemd.service", "#{service_name}.service")
+
+    if cfg[:restart_flag] do
+      write_template(cfg, dest_dir, "restart.service", "#{service_name}-restart.service")
+      write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
+    end
+  end
+
+  defp write_template(cfg, dest_dir, template, file) do
+    target_file = Path.join(dest_dir, file)
+    Mix.shell.info "Generating #{target_file} from template #{template}"
+    Templates.write_template(cfg, dest_dir, template, file)
+  end
+
   # @spec parse_args(OptionParser.argv()) :: Keyword.t() | no_return
   # def parse_args(argv) do
   #   switches = [
