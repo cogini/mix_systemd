@@ -3,15 +3,20 @@ Description=<%= app_name %> service
 After=local-fs.target network.target
 
 # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
-# https://hexdocs.pm/distillery/use-with-systemd.html
+# https://www.freedesktop.org/software/systemd/man/systemd.service.html
 # https://github.com/systemd/systemd/blob/master/NEWS
+# https://hexdocs.pm/distillery/use-with-systemd.html
 
 [Service]
-Type=simple
+Type=<%= service_type %>
 User=<%= app_user %>
 Group=<%= app_group %>
 WorkingDirectory=<%= current_dir %>
+<%= if service_type == :forking do %>
+ExecStart=<%= current_dir %>/bin/<%= app_name %> start
+<%= else %>
 ExecStart=<%= current_dir %>/bin/<%= app_name %> foreground
+<% end %>
 ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
@@ -20,7 +25,10 @@ Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% end %>
-# systemd ignores /etc/security/limits
+<%= if service_type == :forking do %>
+Environment=PIDFILE=<%= pid_file %>
+PIDFile=<%= pid_file %>
+<% end %>
 LimitNOFILE=<%= limit_nofile %>
 UMask=<%= umask %>
 SyslogIdentifier=<%= service_name %>

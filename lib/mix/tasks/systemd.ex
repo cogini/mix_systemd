@@ -31,6 +31,8 @@ defmodule Mix.Tasks.Systemd do
     build_path = Mix.Project.build_path()
 
     defaults = [
+      service_type: :forking # :simple | :exec | :notify | :forking
+
       # Enable conform config file
       conform: false,
 
@@ -146,6 +148,7 @@ defmodule Mix.Tasks.Systemd do
       cache_dir: Path.join(cfg[:cache_directory_base], cfg[:cache_directory]),
 
       conform_conf_path: Path.join([cfg[:configuration_directory_base], cfg[:configuration_directory], "#{app_name}.conf"]),
+      pid_file: Path.join([cfg[:runtime_directory_base], cfg[:runtime_directory], "#{app_name}.pid"]),
 
       # Chroot config
       root_directory: Path.join(cfg[:deploy_dir], "current"),
