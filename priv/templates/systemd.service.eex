@@ -14,7 +14,7 @@ Group=<%= app_group %>
 WorkingDirectory=<%= current_dir %>
 <%= if service_type == :forking do %>
 ExecStart=<%= current_dir %>/bin/<%= app_name %> start
-<%= else %>
+<% else %>
 ExecStart=<%= current_dir %>/bin/<%= app_name %> foreground
 <% end %>
 ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
