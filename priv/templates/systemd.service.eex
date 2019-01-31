@@ -25,6 +25,7 @@ Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% end %>
+EnvironmentFile=-<%= deploy_dir %>/etc/environment
 <%= if :configuration in dirs do %>
 EnvironmentFile=-<%= configuration_dir %>/environment
 <% end %>
