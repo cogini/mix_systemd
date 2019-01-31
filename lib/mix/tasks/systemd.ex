@@ -47,6 +47,10 @@ defmodule Mix.Tasks.Systemd do
 
       restart_method: :systemd_flag, # :systemd_flag | :systemctl | :touch
 
+      # Create network-environment file for app
+      network_environment_service: false,
+      network_environment_service_after: "cloud-init.target",
+
       # OS user to own files and run app
       app_user: ext_name,
       app_group: ext_name,
@@ -239,6 +243,10 @@ defmodule Mix.Tasks.Systemd.Generate do
     if cfg[:restart_flag] do
       write_template(cfg, dest_dir, "restart.service", "#{service_name}-restart.service")
       write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
+    end
+
+    if cfg[:network_environment_service] do
+      write_template(cfg, dest_dir, "network-environment.service", "#{service_name}-network-environment.service")
     end
   end
 

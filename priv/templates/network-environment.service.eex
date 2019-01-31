@@ -1,0 +1,10 @@
+[Unit]
+Description=<%= service_name %> network-environment
+After=local-fs.target <%= network_environment_service_after %>
+
+[Service]
+Type=oneshot
+ExecStart=<%= scripts_dir %>/deploy network_environment
+
+[Install]
+WantedBy=multi-user.target

@@ -21,6 +21,9 @@ use Mix.Config
 #     config :logger, level: :info
 #
 # config :mix_systemd,
+#   network_environment_service: true
+
+# config :mix_systemd,
 #   # Enable restart from flag file
 #   restart_flag: true,
 #   # Enable conform config file

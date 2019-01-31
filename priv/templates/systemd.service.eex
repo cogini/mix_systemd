@@ -1,6 +1,6 @@
 [Unit]
-Description=<%= app_name %> service
-After=local-fs.target network.target
+Description=<%= service_name %> service
+After=local-fs.target network.target<%= if network_environment_service do %> <%= service_name %>-network-environment.service<% end %>
 
 # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 # https://www.freedesktop.org/software/systemd/man/systemd.service.html
