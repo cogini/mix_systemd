@@ -60,6 +60,15 @@ defmodule Mix.Tasks.Systemd do
       # PORT environment var
       env_port: 4000,
 
+      dirs: [
+        :runtime,         # needed for RELEASE_MUTABLE_DIR, network-environment or conform
+        # :configuration, # needed for conform or other external app config file
+        # :logs,          # needed for external log file, not journald
+        # :cache,         # app cache files which can be deleted
+        # :state,         # app state persisted between runs
+        # :tmp,           # app temp files
+      ],
+
       #####
 
       # These are the standard directory locations under systemd for various purposes.
@@ -85,15 +94,6 @@ defmodule Mix.Tasks.Systemd do
       tmp_directory: service_name,
       tmp_directory_base: "/var/tmp",
       tmp_directory_mode: "750",
-
-      dirs: [
-        :runtime,         # needed for network-environment or conform
-        # :configuration, # needed for conform or other external app config file
-        # :logs,          # needed for external log file, not journald
-        # :cache,         # app cache files which can be deleted
-        # :state,         # app state persisted between runs
-        # :tmp,           # app temp files
-      ],
 
       mix_env: Mix.env(),
       # LANG environment var for running scripts
@@ -151,7 +151,7 @@ defmodule Mix.Tasks.Systemd do
       current_dir: Path.join(cfg[:deploy_dir], "current"),
 
       runtime_dir: Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
-      conf_dir: Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
+      configuration_dir: Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
       logs_dir: Path.join(cfg[:logs_directory_base], cfg[:logs_directory]),
       tmp_dir: Path.join(cfg[:tmp_directory_base], cfg[:tmp_directory]),
       state_dir: Path.join(cfg[:state_directory_base], cfg[:state_directory]),

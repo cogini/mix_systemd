@@ -25,6 +25,10 @@ Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% end %>
+<%= if :configuration in dirs do %>
+EnvironmentFile=-<%= configuration_dir %>/environment
+<% end %>
+EnvironmentFile=-<%= runtime_dir %>/network-environment
 <%= if service_type == :forking do %>
 Environment=PIDFILE=<%= pid_file %>
 PIDFile=<%= pid_file %>
@@ -44,6 +48,7 @@ RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
 <% end %>
 <%= if systemd_version >= 235 do %>
 <%= if :configuration in dirs do %>
+EnvironmentFile=-<%= configuration_dir %>/environment
 ConfigurationDirectory=<%= configuration_directory %>
 ConfigurationDirectoryMode=<%= configuration_directory_mode %>
 <% end %>
