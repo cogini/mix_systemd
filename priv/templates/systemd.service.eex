@@ -35,18 +35,30 @@ SyslogIdentifier=<%= service_name %>
 Restart=always
 RestartSec=<%= restart_sec %>
 # PermissionsStartOnly=true
+<%= if :runtime in dirs do %>
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
 <%= if systemd_version >= 235 do %>
 RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
+<% end %>
+<% end %>
+<%= if systemd_version >= 235 do %>
+<%= if :configuration in dirs do %>
 ConfigurationDirectory=<%= configuration_directory %>
 ConfigurationDirectoryMode=<%= configuration_directory_mode %>
+<% end %>
+<%= if :logs in dirs do %>
 LogsDirectory=<%= logs_directory %>
 LogsDirectoryMode=<%= logs_directory_mode %>
+<% end %>
+<%= if :state in dirs do %>
 StateDirectory=<%= state_directory %>
 StateDirectoryMode=<%= state_directory_mode %>
+<% end %>
+<%= if :cache in dirs do %>
 CacheDirectory=<%= cache_directory %>
 CacheDirectoryMode=<%= cache_directory_mode %>
+<% end %>
 <% end %>
 <%= if chroot do %>
 RootDirectory=<%= root_directory %>

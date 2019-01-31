@@ -28,7 +28,15 @@ use Mix.Config
 #   # Enable chroot
 #   chroot: true,
 #   # Enable extra restrictions
-#   paranoia: true
+#   paranoia: true,
+#   dirs: [
+#     :runtime, # for network-environment or conform
+#     # :configuration, # for conform or other app config file
+#     # :logs, # for external log file, not journald
+#     # :cache, # for app cache files which can be deleted
+#     # :state, # for app state persisted between runs
+#     # :tmp, # for app temp files
+#   ]
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

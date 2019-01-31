@@ -54,6 +54,7 @@ defmodule Mix.Tasks.Systemd do
       # Target systemd version
       # systemd_version: 219, # CentOS 7
       # systemd_version: 229, # Ubuntu 16.04
+      # systemd_version: 237, # Ubuntu 18.04
       systemd_version: 235,
 
       # PORT environment var
@@ -84,6 +85,15 @@ defmodule Mix.Tasks.Systemd do
       tmp_directory: service_name,
       tmp_directory_base: "/var/tmp",
       tmp_directory_mode: "750",
+
+      dirs: [
+        :runtime,         # needed for network-environment or conform
+        # :configuration, # needed for conform or other external app config file
+        # :logs,          # needed for external log file, not journald
+        # :cache,         # app cache files which can be deleted
+        # :state,         # app state persisted between runs
+        # :tmp,           # app temp files
+      ],
 
       mix_env: Mix.env(),
       # LANG environment var for running scripts
