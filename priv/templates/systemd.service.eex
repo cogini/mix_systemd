@@ -25,6 +25,9 @@ Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% end %>
+<% for env <- env_vars do %>
+Environment=<%= env %>
+<% end %>
 EnvironmentFile=-<%= deploy_dir %>/etc/environment
 <%= if :configuration in dirs do %>
 EnvironmentFile=-<%= configuration_dir %>/environment
@@ -32,6 +35,9 @@ EnvironmentFile=-<%= configuration_dir %>/environment
 EnvironmentFile=-<%= runtime_dir %>/network-environment
 <%= if service_type == :forking do %>
 Environment=PIDFILE=<%= pid_file %>
+<%= for env <- env_vars do %>
+Environment=<%= env %>
+<% end %>
 PIDFile=<%= pid_file %>
 <% end %>
 LimitNOFILE=<%= limit_nofile %>

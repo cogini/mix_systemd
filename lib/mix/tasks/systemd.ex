@@ -64,6 +64,20 @@ defmodule Mix.Tasks.Systemd do
       # PORT environment var
       env_port: 4000,
 
+      # LANG environment var for running scripts
+      env_lang: "en_US.UTF-8",
+
+      # Misc env vars
+      # env_vars: [
+      #  "REPLACE_OS_VARS=true",
+      # ]
+      env_vars: [],
+
+      # Limit on open files
+      limit_nofile: 65535,
+      umask: "0027",
+      restart_sec: 5,
+
       dirs: [
         :runtime,         # needed for RELEASE_MUTABLE_DIR, network-environment or conform
         # :configuration, # needed for conform or other external app config file
@@ -100,12 +114,6 @@ defmodule Mix.Tasks.Systemd do
       tmp_directory_mode: "750",
 
       mix_env: Mix.env(),
-      # LANG environment var for running scripts
-      env_lang: "en_US.UTF-8",
-      # Limit on open files
-      limit_nofile: 65535,
-      umask: "0027",
-      restart_sec: 5,
 
       # Elixir application name, an atom
       app_name: app_name,
