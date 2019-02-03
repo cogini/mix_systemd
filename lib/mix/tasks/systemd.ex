@@ -47,9 +47,9 @@ defmodule Mix.Tasks.Systemd do
 
       restart_method: :systemd_flag, # :systemd_flag | :systemctl | :touch
 
-      # Create network-environment file for app
-      network_environment_service: false,
-      network_environment_service_after: "cloud-init.target",
+      # Create runtime-environment file for app
+      runtime_environment_service: false,
+      runtime_environment_service_after: "cloud-init.target",
 
       # OS user to own files and run app
       app_user: ext_name,
@@ -79,7 +79,7 @@ defmodule Mix.Tasks.Systemd do
       restart_sec: 5,
 
       dirs: [
-        :runtime,         # needed for RELEASE_MUTABLE_DIR, network-environment or conform
+        :runtime,         # needed for RELEASE_MUTABLE_DIR, runtime-environment or conform
         # :configuration, # needed for conform or other external app config file
         # :logs,          # needed for external log file, not journald
         # :cache,         # app cache files which can be deleted
@@ -253,8 +253,8 @@ defmodule Mix.Tasks.Systemd.Generate do
       write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
     end
 
-    if cfg[:network_environment_service] do
-      write_template(cfg, dest_dir, "network-environment.service", "#{service_name}-network-environment.service")
+    if cfg[:runtime_environment_service] do
+      write_template(cfg, dest_dir, "runtime-environment.service", "#{service_name}-runtime-environment.service")
     end
   end
 

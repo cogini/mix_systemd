@@ -1,6 +1,6 @@
 [Unit]
 Description=<%= service_name %> service
-After=local-fs.target network.target<%= if network_environment_service do %> <%= service_name %>-network-environment.service<% end %>
+After=local-fs.target network.target<%= if runtime_environment_service do %> <%= service_name %>-runtime-environment.service<% end %>
 
 # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 # https://www.freedesktop.org/software/systemd/man/systemd.service.html
@@ -32,7 +32,7 @@ EnvironmentFile=-<%= deploy_dir %>/etc/environment
 <%= if :configuration in dirs do %>
 EnvironmentFile=-<%= configuration_dir %>/environment
 <% end %>
-EnvironmentFile=-<%= runtime_dir %>/network-environment
+EnvironmentFile=-<%= runtime_dir %>/runtime-environment
 <%= if service_type == :forking do %>
 Environment=PIDFILE=<%= pid_file %>
 PIDFile=<%= pid_file %>

@@ -1,12 +1,12 @@
 [Unit]
-Description=<%= service_name %> network-environment
-After=local-fs.target <%= network_environment_service_after %>
+Description=<%= service_name %> runtime-environment
+After=local-fs.target <%= runtime_environment_service_after %>
 
 [Service]
 Type=oneshot
 User=<%= app_user %>
 Group=<%= app_group %>
-ExecStart=<%= scripts_dir %>/deploy-network-environment
+ExecStart=<%= scripts_dir %>/deploy-runtime-environment
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
 <%= if systemd_version >= 235 do %>
