@@ -4,7 +4,14 @@ After=local-fs.target <%= network_environment_service_after %>
 
 [Service]
 Type=oneshot
+User=<%= app_user %>
+Group=<%= app_group %>
 ExecStart=<%= scripts_dir %>/deploy-network-environment
+RuntimeDirectory=<%= runtime_directory %>
+RuntimeDirectoryMode=<%= runtime_directory_mode %>
+<%= if systemd_version >= 235 do %>
+RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
+<% end %>
 
 [Install]
 WantedBy=multi-user.target
