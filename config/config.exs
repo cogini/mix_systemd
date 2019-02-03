@@ -21,7 +21,7 @@ use Mix.Config
 #     config :logger, level: :info
 #
 # config :mix_systemd,
-#   network_environment_service: true,
+#   runtime_environment_service: true,
 #   env_vars: [
 #     "REPLACE_OS_VARS=true",
 #   ]
