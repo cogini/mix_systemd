@@ -5,10 +5,6 @@ After=local-fs.target <%= network_environment_service_after %>
 [Service]
 Type=oneshot
 ExecStart=<%= scripts_dir %>/deploy-network-environment
-User=<%= app_user %>
-Group=<%= app_group %>
-RuntimeDirectory=<%= runtime_directory %>
-RuntimeDirectoryMode=<%= runtime_directory_mode %>
 
 [Install]
 WantedBy=multi-user.target
