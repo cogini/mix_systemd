@@ -60,7 +60,6 @@ RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
 <% end %>
 <%= if systemd_version >= 235 do %>
 <%= if :configuration in dirs do %>
-EnvironmentFile=-<%= configuration_dir %>/environment
 ConfigurationDirectory=<%= configuration_directory %>
 ConfigurationDirectoryMode=<%= configuration_directory_mode %>
 <% end %>
