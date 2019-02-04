@@ -21,11 +21,17 @@ use Mix.Config
 #     config :logger, level: :info
 #
 # config :mix_systemd,
+#   runtime_environment_wrap: true,
+#   env_vars: [
+#     "REPLACE_OS_VARS=true",
+#   ]
+#
+# config :mix_systemd,
 #   runtime_environment_service: true,
 #   env_vars: [
 #     "REPLACE_OS_VARS=true",
 #   ]
-
+#
 # config :mix_systemd,
 #   # Enable restart from flag file
 #   restart_flag: true,

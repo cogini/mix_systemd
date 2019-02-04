@@ -49,6 +49,8 @@ defmodule Mix.Tasks.Systemd do
 
       # Create runtime-environment file for app
       runtime_environment_service: false,
+      # Wrap app in runtime-environment script
+      runtime_environment_wrap: false,
       runtime_environment_service_after: "cloud-init.target",
 
       # OS user to own files and run app
