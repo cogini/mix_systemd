@@ -35,6 +35,7 @@ Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>
+EnvironmentFile=-<%= current_dir %>/etc/environment
 EnvironmentFile=-<%= deploy_dir %>/etc/environment
 <%= if :configuration in dirs do %>
 EnvironmentFile=-<%= configuration_dir %>/environment
