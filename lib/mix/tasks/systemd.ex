@@ -75,6 +75,9 @@ defmodule Mix.Tasks.Systemd do
       # ]
       env_vars: [],
 
+      # ExecStartPre commands to run before ExecStart
+      exec_start_pre: [],
+
       # Limit on open files
       limit_nofile: 65535,
       umask: "0027",

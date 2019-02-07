@@ -19,6 +19,10 @@ Type=<%= service_type %>
 User=<%= app_user %>
 Group=<%= app_group %>
 WorkingDirectory=<%= current_dir %>
+
+<%= for command <- exec_start_pre do %>
+ExecStartPre=<%= command %>
+<% end %>
 <%= if runtime_environment_wrap do %>
 ExecStart=<%= scripts_dir %>/deploy-runtime-environment-wrap <%= start_command %>
 <% else %>
