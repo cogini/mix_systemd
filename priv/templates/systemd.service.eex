@@ -21,7 +21,11 @@ Group=<%= app_group %>
 WorkingDirectory=<%= current_dir %>
 
 <%= for command <- exec_start_pre do %>
+<%= if String.starts_with?(command, "/") do %>
 ExecStartPre=<%= command %>
+<% else %>
+ExecStartPre=<%= scripts_dir %><%= command %>
+<% end %>
 <% end %>
 <%= if runtime_environment_wrap do %>
 ExecStart=<%= scripts_dir %>/deploy-runtime-environment-wrap <%= start_command %>
