@@ -26,6 +26,7 @@ ExecStart=<%= start_command %>
 <% end %>
 ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
 Environment=LANG=<%= env_lang %>
+Environment=HOME=<%= deploy_dir %>
 Environment=MIX_ENV=<%= mix_env %>
 Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
 Environment=PORT=<%= env_port %>
