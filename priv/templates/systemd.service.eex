@@ -32,7 +32,7 @@ Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% end %>
-<% for env <- env_vars do %>
+<%= for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>
 EnvironmentFile=-<%= current_dir %>/etc/environment
