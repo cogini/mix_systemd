@@ -24,7 +24,7 @@ WorkingDirectory=<%= current_dir %>
 <%= if String.starts_with?(command, "/") do %>
 ExecStartPre=<%= command %>
 <% else %>
-ExecStartPre=<%= scripts_dir %><%= command %>
+ExecStartPre=<%= scripts_dir %>/<%= command %>
 <% end %>
 <% end %>
 <%= if runtime_environment_wrap do %>
