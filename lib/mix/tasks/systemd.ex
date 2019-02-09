@@ -42,15 +42,15 @@ defmodule Mix.Tasks.Systemd do
       # Enable extra restrictions
       paranoia: false,
 
-      # Enable restart from flag file
-      restart_flag: false,
-
-      restart_method: :systemd_flag, # :systemd_flag | :systemctl | :touch
+      restart_method: :systemctl, # :systemd_flag | :systemctl | :touch
 
       # Create runtime-environment file for app
       runtime_environment_service: false,
       # Wrap app in runtime-environment script
       runtime_environment_wrap: false,
+      # Wrapper script name
+      runtime_environment_wrap_script: "deploy-runtime-environment",
+      # Start dependencies of wrapper script
       runtime_environment_service_after: "cloud-init.target",
 
       # OS user to own files and run app
@@ -253,7 +253,7 @@ defmodule Mix.Tasks.Systemd.Generate do
 
     write_template(cfg, dest_dir, "systemd.service", "#{service_name}.service")
 
-    if cfg[:restart_flag] do
+    if cfg[:restart_method] == :systemd_flag do
       write_template(cfg, dest_dir, "restart.service", "#{service_name}-restart.service")
       write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
     end

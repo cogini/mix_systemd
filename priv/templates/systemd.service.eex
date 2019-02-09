@@ -2,10 +2,11 @@
 Description=<%= service_name %> service
 After=local-fs.target network.target<%= if runtime_environment_wrap do %> <%= runtime_environment_service_after %><% end %><%= if runtime_environment_service do %> <%= service_name %>-runtime-environment.service<% end %>
 
+<%#
 # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 # https://www.freedesktop.org/software/systemd/man/systemd.service.html
 # https://github.com/systemd/systemd/blob/master/NEWS
-# https://hexdocs.pm/distillery/use-with-systemd.html
+%>
 
 <% start_command = if service_type == :forking do
 "#{current_dir}/bin/#{app_name} start"
@@ -28,7 +29,7 @@ ExecStartPre=<%= scripts_dir %>/<%= command %>
 <% end %>
 <% end %>
 <%= if runtime_environment_wrap do %>
-ExecStart=<%= scripts_dir %>/deploy-runtime-environment-wrap <%= start_command %>
+ExecStart=<%= scripts_dir %>/<%= runtime_environment_wrap_script %> <%= start_command %>
 <% else %>
 ExecStart=<%= start_command %>
 <% end %>
