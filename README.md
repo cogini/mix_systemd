@@ -12,10 +12,10 @@ unit which will restart the main unit when a flag file appears or changes.
 
 ```shell
 # Creates revision from current release with MIX_ENV=dev (the default)
-mix systemd.unit
+mix systemd.init
 
 # Builds a release with MIX_ENV=prod
-MIX_ENV=prod mix systemd.unit
+MIX_ENV=prod mix systemd.generate
 ```
 
 ## Configuration
