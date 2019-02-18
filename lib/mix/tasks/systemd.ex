@@ -85,7 +85,7 @@ defmodule Mix.Tasks.Systemd do
 
       dirs: [
         :runtime,         # needed for RELEASE_MUTABLE_DIR, runtime-environment or conform
-        # :configuration, # needed for conform or other external app config file
+        :configuration,   # needed for Erlang cookie
         # :logs,          # needed for external log file, not journald
         # :cache,         # app cache files which can be deleted
         # :state,         # app state persisted between runs
