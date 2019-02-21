@@ -28,11 +28,17 @@ ExecStartPre=<%= command %>
 ExecStartPre=<%= scripts_dir %>/<%= command %>
 <% end %>
 <% end %>
+
 <%= if runtime_environment_wrap do %>
+<%= if String.starts_with?(runtime_environment_wrap_script, "/") do %>
+ExecStart=<%= runtime_environment_wrap_script %> <%= start_command %>
+<% else %>
 ExecStart=<%= scripts_dir %>/<%= runtime_environment_wrap_script %> <%= start_command %>
+<% end %>
 <% else %>
 ExecStart=<%= start_command %>
 <% end %>
+
 ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
 Environment=LANG=<%= env_lang %>
 Environment=HOME=<%= deploy_dir %>

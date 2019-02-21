@@ -6,7 +6,7 @@ After=local-fs.target <%= runtime_environment_service_after %>
 Type=oneshot
 User=<%= app_user %>
 Group=<%= app_group %>
-ExecStart=<%= scripts_dir %>/deploy-runtime-environment-file
+ExecStart=<%= scripts_dir %>/<%= runtime_environment_service_script %>
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
 <%= if systemd_version >= 235 do %>

@@ -42,10 +42,13 @@ defmodule Mix.Tasks.Systemd do
       # Enable extra restrictions
       paranoia: false,
 
-      restart_method: :systemctl, # :systemd_flag | :systemctl | :touch
+      restart_method: :systemctl, # :systemctl | :systemd_flag | :touch
 
       # Create runtime-environment file for app
       runtime_environment_service: false,
+      # Service script name
+      runtime_environment_service_script: "deploy-runtime-environment-file"
+
       # Wrap app in runtime-environment script
       runtime_environment_wrap: false,
       # Wrapper script name
@@ -152,12 +155,6 @@ defmodule Mix.Tasks.Systemd do
           |> Keyword.merge(user_config)
           |> Keyword.merge(overrides)
 
-    # Default OS user and group names
-    cfg = Keyword.merge([
-      deploy_user: cfg[:app_user],
-      deploy_group: cfg[:app_group],
-    ], cfg)
-
     # Mix.shell.info "cfg: #{inspect cfg}"
 
     # Data calculated from other things
@@ -182,7 +179,6 @@ defmodule Mix.Tasks.Systemd do
       read_write_paths: [],
       read_only_paths: [],
       inaccessible_paths: [],
-
     ], cfg)
   end
 end
