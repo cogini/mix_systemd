@@ -267,7 +267,7 @@ Set `runtime_environment_wrap` to `true` and set
 `runtime_environment_wrap_script` to the name of the script. Default is the
 `deploy-runtime-environment-wrap` script from `mix_deploy`.
 
-systemd starts units in parallel when possible, but we may need to enforce ordering.
+Systemd starts units in parallel when possible, but we may need to enforce ordering.
 Set `runtime_environment_service_after` to the names of systemd units that the
 script depends on. For example, set it to `cloud-init.target` if you are using cloud-init to get
 [runtime network information](https://cloudinit.readthedocs.io/en/latest/topics/network-config.html#network-configuration-outputs).
@@ -295,8 +295,6 @@ and make it a runtime dependency of the main script.
     MountAPIVFS=yes
                                                                                                     │
 `chroot`: Enable systemd [chroot](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RootDirectory=), default `false`.
-
-`root_directory` is set to `current_dir`. You can also set systemd
-[ReadWritePaths=, ReadOnlyPaths=,
+Systemd `RootDirectory` is set to `current_dir`. You can also set systemd [ReadWritePaths=, ReadOnlyPaths=,
 InaccessiblePaths=](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#ReadWritePaths=)
 with the `read_write_paths`, `read_only_paths` and `inaccessible_paths` vars.
