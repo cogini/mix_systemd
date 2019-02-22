@@ -75,18 +75,18 @@ See `lib/mix/tasks/systemd.ex` for all the details.
 `app_name`: Elixir application name, an atom, from the `app` field in the `mix.exs` project.
 
 `ext_name`: External name, used for files and directories.
-Defaults to `app_name` with underscores converted to "-".
+Default is `app_name` with underscores converted to "-".
 
-`service_name`: Name of the systemd service. Defaults to `ext_name`.
+`service_name`: Name of the systemd service, default `ext_name`.
 
-`base_dir`: Base directory where app files go, default is `/srv` to
+`base_dir`: Base directory where app files go, default `/srv` to
 follow conventions.
 
-`deploy_dir`: Directory where app files go, default is `#{base_dir}/#{ext_name}`
+`deploy_dir`: Directory where app files go, default `#{base_dir}/#{ext_name}`
 
-`app_user`: OS user account that the app runs under. Defaults to `ext_name`.
+`app_user`: OS user account that the app runs under, default `ext_name`.
 
-`app_group`: OS group account, defaults to `ext_name`.
+`app_group`: OS group account, default `ext_name`.
 
 ### Directories
 
@@ -95,7 +95,7 @@ purposes, e.g. configuration or cache files.
 See https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
 
 This library defines these directories based on the app name, e.g. `/etc/#{ext_name}`.
-It only creates directories that the app uses, defaulting to `runtime` (`/run/#{ext_name}`)
+It only creates directories that the app uses, default `runtime` (`/run/#{ext_name}`)
 and `configuration` (`/etc/#{ext_name}`). If your app uses other dirs, set them in the
 `dirs` var:
 
@@ -132,7 +132,7 @@ versions in common OS releases:
 The library assues a directory structure under `deploy_dir` which allows it to handle multiple reases,
 similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
 
-* `scripts_dir`:  deployment scripts to e.g. start and stop the unit, default `bin`.
+* `scripts_dir`:  dir for deployment scripts which e.g. start and stop the unit, default `bin`.
 * `current_dir`: dir where the current Erlang release is unpacked or referenced by symlink, default `current`.
 * `releases_dir`: dir where versioned releases may be unpacked, default `releases`.
 * `flags_dir`: dir for flag files to trigger restart, e.g. when `restart_method` is `:systemd_flag`, default `flags`.
@@ -157,7 +157,7 @@ The library sets a few common env vars directly in the unit file:
 
 * `PORT`: `env_port` var, default 4000
 * `LANG`: `env_lang` var, default `en_US.UTF-8`
-* `MIX_ENV`: `mix_env` var, default is `Mix.env()`
+* `MIX_ENV`: `mix_env` var, default `Mix.env()`
 * `HOME`: `home_dir` var, default `deploy_dir`
 * `RELEASE_MUTABLE_DIR`: default `runtime_dir`, e.g. `/run/#{ext_name}`
 * `DEFAULT_COOKIE_FILE`: default `#{configuration_dir}/erlang.cookie`, e.g. `/etc/#{ext_name}/erlang.cookie`
@@ -281,7 +281,7 @@ and make it a runtime dependency of the main script.
 
 ## Security
 
-`paranoia`: enable systemd security options. Default `false`
+`paranoia`: enable systemd security options, default `false`.
 
     NoNewPrivileges=yes
     PrivateDevices=yes
@@ -294,7 +294,7 @@ and make it a runtime dependency of the main script.
     ProtectControlGroups=yes
     MountAPIVFS=yes
                                                                                                     │
-`chroot`: Enable systemd [chroot](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RootDirectory=). Default `false`.
+`chroot`: Enable systemd [chroot](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RootDirectory=), default `false`.
 
 `root_directory` is set to `current_dir`. You can also set systemd
 [ReadWritePaths=, ReadOnlyPaths=,
