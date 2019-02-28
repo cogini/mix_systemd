@@ -70,9 +70,15 @@ config :mix_systemd,
 The following sections describe configuration options.
 See `lib/mix/tasks/systemd.ex` for all the details.
 
+If you need to make changes not supported by the config options, then you can
+check the templates into source control from `rel/templates/systemd` and make
+your own changes (contributions welcome!).
+
 ### Basics
 
 `app_name`: Elixir application name, an atom, from the `app` field in the `mix.exs` project.
+
+`version`: `version` from `mix.exs` project.
 
 `ext_name`: External name, used for files and directories.
 Default is `app_name` with underscores converted to "-".
@@ -210,7 +216,7 @@ Set this to `:systemd_flag`, and the library will generate an additional
 unit file which watches for changes to a flag file and restarts the
 main unit. This allows updates to be pushed to the target machine by an
 unprivilieged user account which does not have permissions to restart
-proccesses.
+proccesses. `touch` the file `#{flags_dir}/restart.flag` and systemd will restart the unit.
 
 ### Runtime configuration
 
@@ -240,7 +246,7 @@ set `CONFORM_CONF_PATH` to `/etc/#{ext_name}/#{app_name}.conf`. Conform has been
 depreciated in favor of [TOML](https://github.com/bitwalker/toml-elixir), so
 you should use that instead.
 
-This library suports three ways to get runtime config.
+This library suports three ways to get runtime config:
 
 #### `ExecStartPre` scripts
 
