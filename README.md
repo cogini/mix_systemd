@@ -44,7 +44,7 @@ Run this command to initialize templates under the `rel/templates/systemd` direc
 MIX_ENV=prod systemd.init
 ```
 
-Next, generate output files under `_project/#{mix_env}/systemd/lib/systemd/system`.
+Next, generate output files under `_build/#{mix_env}/systemd/lib/systemd/system`.
 
 ```shell
 MIX_ENV=prod mix systemd.generate
