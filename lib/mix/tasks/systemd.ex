@@ -163,7 +163,6 @@ defmodule Mix.Tasks.Systemd do
       scripts_dir: Path.join(cfg[:deploy_dir], "bin"),
       flags_dir: Path.join(cfg[:deploy_dir], "flags"),
       current_dir: Path.join(cfg[:deploy_dir], "current"),
-      home_dir: cfg[:deploy_dir],
 
       runtime_dir: Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
       configuration_dir: Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),

@@ -164,7 +164,6 @@ The library sets a few common env vars directly in the unit file:
 * `PORT`: `env_port` var, default 4000
 * `LANG`: `env_lang` var, default `en_US.UTF-8`
 * `MIX_ENV`: `mix_env` var, default `Mix.env()`
-* `HOME`: `home_dir` var, default `deploy_dir`
 * `RELEASE_MUTABLE_DIR`: default `runtime_dir`, e.g. `/run/#{ext_name}`
 * `DEFAULT_COOKIE_FILE`: default `#{configuration_dir}/erlang.cookie`, e.g. `/etc/#{ext_name}/erlang.cookie`
 * `CONFORM_CONF_PATH`: default `/etc/#{ext_name}/#{app_name}.conf`. if `conform` is `true`

@@ -41,7 +41,6 @@ ExecStart=<%= start_command %>
 
 ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
 Environment=LANG=<%= env_lang %>
-Environment=HOME=<%= home_dir %>
 Environment=MIX_ENV=<%= mix_env %>
 Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
 Environment=DEFAULT_COOKIE_FILE=<%= configuration_dir %>/erlang.cookie
