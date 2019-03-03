@@ -44,6 +44,10 @@ defmodule Mix.Tasks.Systemd do
 
       restart_method: :systemctl, # :systemctl | :systemd_flag | :touch
 
+      # Location of Erlang cookie file
+      cookie_dir: :home, # :home | :configuration_dir | :runtime_dir
+      cookie_file: "erlang.cookie", # "erlang.cookie" | ".erlang.cookie"
+
       # Create runtime-environment file for app
       runtime_environment_service: false,
       # Service script name

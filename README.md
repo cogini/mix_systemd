@@ -165,7 +165,12 @@ The library sets a few common env vars directly in the unit file:
 * `LANG`: `env_lang` var, default `en_US.UTF-8`
 * `MIX_ENV`: `mix_env` var, default `Mix.env()`
 * `RELEASE_MUTABLE_DIR`: default `runtime_dir`, e.g. `/run/#{ext_name}`
-* `DEFAULT_COOKIE_FILE`: default `#{configuration_dir}/erlang.cookie`, e.g. `/etc/#{ext_name}/erlang.cookie`
+* `DEFAULT_COOKIE_FILE`: `cookie_dir` var, value `:home`, `:runtime_dir`,
+   `:configuration_dir`, or a string starting with "/".
+   Default is `:home`, which does not set the var, and the system relies on
+   default behavior which generates and writes a cookie to `$HOME/.erlang.cookie`.
+   If a value is specified, it uses the corresponding dir plus the value of
+   `cookie_file`, default `erlang.cookie`.
 * `CONFORM_CONF_PATH`: default `/etc/#{ext_name}/#{app_name}.conf`. if `conform` is `true`
 
 You can set additional vars in the `env_vars` config var, e.g.:
