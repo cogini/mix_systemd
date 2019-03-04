@@ -167,10 +167,19 @@ The library sets a few common env vars directly in the unit file:
 * `RELEASE_MUTABLE_DIR`: default `runtime_dir`, e.g. `/run/#{ext_name}`
 * `DEFAULT_COOKIE_FILE`: `cookie_dir` var, value `:home`, `:runtime_dir`,
    `:configuration_dir`, or a string starting with "/".
-   Default is `:home`, which does not set the var, and the system relies on
-   default behavior which generates and writes a cookie to `$HOME/.erlang.cookie`.
-   If a value is specified, it uses the corresponding dir plus the value of
-   `cookie_file`, default `erlang.cookie`.
+
+   Default is `:home`, which does not set the var. The VM boot scripts will
+   use the default behavior, which generates a cookie and writes it to `$HOME/.erlang.cookie`.
+   If you specify a value for `cookie_dir`, then the systemd unit will set the
+   `DEFAULT_COOKIE_FILE` env var to the corresponding directory and the startup scripts will
+   use it. `cookie_file` sets the name of the file in the dir, default `erlang.cookie`.
+
+   If you are only using the app on a single node, then the cookie is not important,
+   though it should be strong for security. If you need to connect to the node remotely
+   via a remote shell, you will need the cookie.
+
+   You can also manage the cookie as a secret in your deployment process. In that case,
+   you would write it to the specified directory, and the Erlang node will use it.
 * `CONFORM_CONF_PATH`: default `/etc/#{ext_name}/#{app_name}.conf`. if `conform` is `true`
 
 You can set additional vars in the `env_vars` config var, e.g.:
@@ -193,11 +202,17 @@ overridden in the deployment or runtime environment.
 
 ### Systemd and OS
 
-`limit_nofile`, Limit on open files, systemd [LimitNOFILE](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=), default 65535.
+`limit_nofile`, Limit on open files, systemd
+[LimitNOFILE](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=),
+default 65535.
 
-`umask`, process umask, systemd [UMask](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=), default 0027
+`umask`, process umask, systemd
+[UMask](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=),
+default 0027
 
-`restart_sec`: time to wait between restarts, systemd [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=), default 5 sec.
+`restart_sec`: time to wait between restarts, systemd
+[RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
+default 5 sec.
 
 `service_type`: `:simple | :exec | :notify | :forking`. Default `:forking`.
 
