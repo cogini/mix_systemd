@@ -20,6 +20,8 @@ security and reliability.
 While it can be used standalone, more advanced use cases require scripts
 from e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
 
+Here is [a complete example app which uses mix_deploy](https://github.com/cogini/mix-systemd-deploy-example).
+
 ## Installation
 
 Add `mix_systemd` to the list of dependencies in `mix.exs`:
