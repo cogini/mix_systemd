@@ -127,7 +127,7 @@ to create them beforehand using scripts, e.g. [mix_deploy](https://github.com/co
 
 `systemd_version`: Sets the systemd version on the target system, default 235.
 This determines which systemd features the library will enable. If you are
-targeting an older OS relese, you may need to change it. Here are the systemd
+targeting an older OS release, you may need to change it. Here are the systemd
 versions in common OS releases:
 
 * CentOS 7: 219
@@ -136,7 +136,7 @@ versions in common OS releases:
 
 ### Additional directories
 
-The library assues a directory structure under `deploy_dir` which allows it to handle multiple releases,
+The library assumes a directory structure under `deploy_dir` which allows it to handle multiple releases,
 similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
 
 * `scripts_dir`:  deployment scripts which e.g. start and stop the unit, default `bin`.
@@ -238,8 +238,8 @@ successfully, it just keeps going. If something depends on your app being up,
 Set this to `:systemd_flag`, and the library will generate an additional
 unit file which watches for changes to a flag file and restarts the
 main unit. This allows updates to be pushed to the target machine by an
-unprivilieged user account which does not have permissions to restart
-proccesses. `touch` the file `#{flags_dir}/restart.flag` and systemd will restart the unit.
+unprivileged user account which does not have permissions to restart
+processes. `touch` the file `#{flags_dir}/restart.flag` and systemd will restart the unit.
 
 ### Runtime configuration
 
@@ -269,7 +269,7 @@ set `CONFORM_CONF_PATH` to `/etc/#{ext_name}/#{app_name}.conf`. Conform has been
 depreciated in favor of [TOML](https://github.com/bitwalker/toml-elixir), so
 you should use that instead.
 
-This library suports three ways to get runtime config:
+This library supports three ways to get runtime config:
 
 #### `ExecStartPre` scripts
 
