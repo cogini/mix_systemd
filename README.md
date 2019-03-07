@@ -72,13 +72,13 @@ See `lib/mix/tasks/systemd.ex` for all the details.
 
 If you need to make changes not supported by the config options, then you can
 check the templates into source control from `rel/templates/systemd` and make
-your own changes (contributions welcome!).
+your own changes.
 
 ### Basics
 
 `app_name`: Elixir application name, an atom, from the `app` field in the `mix.exs` project.
 
-`version`: `version` from `mix.exs` project.
+`version`: `version` from the `mix.exs` project.
 
 `ext_name`: External name, used for files and directories.
 Default is `app_name` with underscores converted to "-".
@@ -86,7 +86,7 @@ Default is `app_name` with underscores converted to "-".
 `service_name`: Name of the systemd service, default `ext_name`.
 
 `base_dir`: Base directory where app files go, default `/srv` to
-follow conventions.
+follow systemd conventions.
 
 `deploy_dir`: Directory where app files go, default `#{base_dir}/#{ext_name}`
 
@@ -107,12 +107,13 @@ and `configuration` (`/etc/#{ext_name}`). If your app uses other dirs, set them 
 
 ```elixir
 dirs: [
-  :runtime,       # Needed for RELEASE_MUTABLE_DIR, runtime-environment or conform
-  :configuration, # Needed for Erlang cookie
-  # :cache,       # App cache files which can be deleted
-  # :logs,        # App external log files, not via journald
-  # :state,       # App state persisted between runs
-  # :tmp,         # App temp files
+  :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
+                  # Needed for RELEASE_MUTABLE_DIR, runtime-environment or conform
+  :configuration, # App configuration, e.g. db passwords, /etc/#{ext_name}
+  # :state,       # App data or state persisted between runs, /var/lib/#{ext_name}
+  # :cache,       # App cache files which can be deleted, /var/cache/#{ext_name}
+  # :logs,        # App external log files, not via journald, /var/log/#{ext_name}
+  # :tmp,         # App temp files, /var/tmp/#{ext_name}
 ],
 ```
 
@@ -122,7 +123,7 @@ See the defaults in `lib/mix/tasks/systemd.ex`.
 
 More recent versions of systemd (after 235) will create these directories at start
 time based on the settings in the unit file. For earlier systemd versions, you need
-to create them beforehand using scripts in e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
+to create them beforehand using scripts, e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
 
 `systemd_version`: Sets the systemd version on the target system, default 235.
 This determines which systemd features the library will enable. If you are
@@ -135,12 +136,12 @@ versions in common OS releases:
 
 ### Additional directories
 
-The library assues a directory structure under `deploy_dir` which allows it to handle multiple reases,
+The library assues a directory structure under `deploy_dir` which allows it to handle multiple releases,
 similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
 
-* `scripts_dir`:  dir for deployment scripts which e.g. start and stop the unit, default `bin`.
-* `current_dir`: dir where the current Erlang release is unpacked or referenced by symlink, default `current`.
-* `releases_dir`: dir where versioned releases may be unpacked, default `releases`.
+* `scripts_dir`:  deployment scripts which e.g. start and stop the unit, default `bin`.
+* `current_dir`: where the current Erlang release is unpacked or referenced by symlink, default `current`.
+* `releases_dir`: where versioned releases are unpacked, default `releases`.
 * `flags_dir`: dir for flag files to trigger restart, e.g. when `restart_method` is `:systemd_flag`, default `flags`.
 
 When using multiple releases and symlinks, the deployment process works like this:
@@ -148,14 +149,14 @@ When using multiple releases and symlinks, the deployment process works like thi
 1. Create a new directory for the release with a timestamp like
    `/srv/foo/releases/20181114T072116`.
 
-2. Upload the new release tarball to the server and unpack it to the release dir
+2. Upload the new release tarball to the server and unpack it to the releases dir
 
-3. Make a symlink from `/srv/foo/current` to the new release dir.
+3. Make a symlink from `/srv/#{ext_name}/current` to the new release dir.
 
 4. Restart the app.
 
 If you are only keeping a single version, then you would deploy it to
-the `/srv/foo/current` dir.
+the `/srv/#{ext_name}/current` dir.
 
 ### Environment vars
 
@@ -165,24 +166,27 @@ The library sets a few common env vars directly in the unit file:
 * `LANG`: `env_lang` var, default `en_US.UTF-8`
 * `MIX_ENV`: `mix_env` var, default `Mix.env()`
 * `RELEASE_MUTABLE_DIR`: default `runtime_dir`, e.g. `/run/#{ext_name}`
+
 * `DEFAULT_COOKIE_FILE`: `cookie_dir` var, value `:home`, `:runtime_dir`,
    `:configuration_dir`, or a string starting with "/".
 
-   Default is `:home`, which does not set the var. The VM boot scripts will
-   use the default behavior, which generates a cookie and writes it to `$HOME/.erlang.cookie`.
-   If you specify a value for `cookie_dir`, then the systemd unit will set the
-   `DEFAULT_COOKIE_FILE` env var to the corresponding directory and the startup scripts will
+   Default is `:home`, which does not set the var. The default behavior of the VM boot scripts
+   will generate a cookie and write it to `$HOME/.erlang.cookie`.
+   If you specify a value for `cookie_dir`, then the systemd unit will set
+   `DEFAULT_COOKIE_FILE` to the corresponding directory and the startup scripts will
    use it. `cookie_file` sets the name of the file in the dir, default `erlang.cookie`.
 
    If you are only using the app on a single node, then the cookie is not important,
    though it should be strong for security. If you need to connect to the node remotely
    via a remote shell, you will need the cookie.
 
-   You can also manage the cookie as a secret in your deployment process. In that case,
-   you would write it to the specified directory, and the Erlang node will use it.
-* `CONFORM_CONF_PATH`: default `/etc/#{ext_name}/#{app_name}.conf`. if `conform` is `true`
+   If you are running in a cluster, then they need to share the key, and you should
+   manage the cookie as a secret in your deployment process. In that case,
+   you can write it to the specified directory, and the Erlang node will use it.
 
-You can set additional vars in the `env_vars` config var, e.g.:
+* `CONFORM_CONF_PATH`: Default `/etc/#{ext_name}/#{app_name}.conf`, set if `conform` var is `true`
+
+You can set misc additional vars in the `env_vars` config var, e.g.:
 
 ```elixir
 env_vars: [
@@ -195,22 +199,22 @@ The unit file also attempts to read environment vars from a series of files:
 * `etc/environment` within the release, e.g. `/srv/app/currrent/etc/environment`
 * `#{deploy_dir}/etc/environment`, e.g. `/srv/app/etc/environment`
 * `#{configuration_dir}/environment`, e.g. `/etc/app/environment`
-* `#{runtime_dir}/runtime-environment`, e.g. `/var/run/app/runtime-environment`
+* `#{runtime_dir}/runtime-environment`, e.g. `/run/app/runtime-environment`
 
 Later values override earlier values, so you can set defaults which get
 overridden in the deployment or runtime environment.
 
 ### Systemd and OS
 
-`limit_nofile`, Limit on open files, systemd
+`limit_nofile`: Limit on open files, systemd
 [LimitNOFILE](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=),
 default 65535.
 
-`umask`, process umask, systemd
+`umask`: Process umask, systemd
 [UMask](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=),
 default 0027
 
-`restart_sec`: time to wait between restarts, systemd
+`restart_sec`: Time to wait between restarts, systemd
 [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
 default 5 sec.
 
@@ -220,8 +224,8 @@ In theory, "modern" applications are not supposed to fork. The Erlang VM runs
 pretty well in "foreground" mode, but it is really expecting to run as a
 standard Unix-style daemon. Systemd expects foregrounded apps to die when their
 pipe closes, so this library runs forking mode by default. It sets `pid_file`
-to `runtime_directory/#{app_name}.pid` and sets the `PIDFILE` env var to tell
-Distillery where it is. See
+to `#{runtime_directory}/#{app_name}.pid` and sets the `PIDFILE` env var to tell
+the boot scripts where it is. See
 https://elixirforum.com/t/systemd-cant-shutdown-my-foreground-app-cleanly/14581/2
 
 To run in foreground mode, set `service_type` to `:simple` or `:exec`. Note
@@ -239,25 +243,25 @@ proccesses. `touch` the file `#{flags_dir}/restart.flag` and systemd will restar
 
 ### Runtime configuration
 
-For configuration, we normally use a combination of build time settings, deploy
+For configuration, we use a combination of build time settings, deploy
 time settings, and runtime settings.
 
 The configuration settings in `config/prod.exs` are baked into the release. We
-can then extend them with machine specific configuration stored in the
+can then extend them with machine-specific configuration stored in the
 configuration dir `/etc/#{ext_name}` which are read by the app on startup.
 
 In on-premises deployments, we might generate the machine-specific
-configuration when setting up the app. In cloud and other dynamic environments,
-we may run from a read-only image, e.g. an Amazon AMI, which gets configured
-for the environment when it starts.
+configuration once when setting up the app.
 
-We can also read configuration settings at runtime, e.g. getting the database
-host and login from a configuration store like [AWS Systems Manager Parameter
-Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html)
+In cloud and other dynamic environments, we may run from a read-only image,
+e.g. an Amazon AMI, which gets configured at start up based on the environment
+by copying the config from an S3 bucket. We can also read configuration
+settings like database host and login from a configuration store like
+[AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html)
 or etcd.
 
-We might also have things that change dynamically, e.g. the IP address of the
-machine.
+Some things change dynamically each time the app starts, e.g. the IP address of
+the machine, or periodically, such as AWS access keys in an IAM instance role.
 
 [Conform](https://github.com/bitwalker/conform) is a popular way of making a
 machine-specific config file. Set `conform` to `true`, and the library will
@@ -273,10 +277,10 @@ These scripts run before the main `ExecStart` script runs.
 
 You can specify multiple scripts in the `exec_start_pre` var. If the name
 starts with a slash, it is run directly, otherwise it is expected to be in the
-directory specified by `scripts_dir` (normally `bin` in the deploy dir).
+directory specified by `scripts_dir` (normally `#{deploy_dir}/bin`).
 
-These scripts should generally write config to either the systemd `configuration_dir`
-(`/etc`) for persistent config, and under `runtime_dir` (`/run`)
+These scripts should generally write config to either the systemd
+`configuration_dir` (`/etc`) for persistent config or `runtime_dir` (`/run`)
 for data which systemd should clean up on restart.
 
 #### Wrapper script
@@ -302,11 +306,12 @@ script depends on. For example, set it to `cloud-init.target` if you are using c
 We can run our own service to collect runtime data and configure the system.
 Set `runtime_environment_service` to `true` and this library will create
 a service which runs the script specified by `runtime_environment_service_script`
-and make it a runtime dependency of the main script.
+and make it a runtime dependency of the main script. This ensures that the data
+is available before the app starts.
 
 ## Security
 
-`paranoia`: enable systemd security options, default `false`.
+`paranoia`: Enable systemd security options, default `false`.
 
     NoNewPrivileges=yes
     PrivateDevices=yes
@@ -320,6 +325,6 @@ and make it a runtime dependency of the main script.
     MountAPIVFS=yes
                                                                                                     │
 `chroot`: Enable systemd [chroot](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RootDirectory=), default `false`.
-Systemd `RootDirectory` is set to `current_dir`. You can also set systemd [ReadWritePaths=, ReadOnlyPaths=,
+Sets systemd `RootDirectory` is set to `current_dir`. You can also set systemd [ReadWritePaths=, ReadOnlyPaths=,
 InaccessiblePaths=](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#ReadWritePaths=)
-with the `read_write_paths`, `read_only_paths` and `inaccessible_paths` vars.
+with the `read_write_paths`, `read_only_paths` and `inaccessible_paths` vars, respectively.
