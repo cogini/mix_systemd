@@ -43,7 +43,7 @@ task uses them to create the output files.
 Run this command to initialize templates under the `rel/templates/systemd` directory:
 
 ```shell
-MIX_ENV=prod systemd.init
+mix systemd.init
 ```
 
 Next, generate output files under `_build/#{mix_env}/systemd/lib/systemd/system`.
@@ -235,7 +235,7 @@ that in `simple` mode, systemd doesn't actually check if the app started
 successfully, it just keeps going. If something depends on your app being up,
 `:exec` may be better.
 
-`restart_method`: `:systemd_flag | :systemctl | :touch`. Default `:systemctl`
+`restart_method`: `:systemctl | :systemd_flag | :touch`. Default `:systemctl`
 
 Set this to `:systemd_flag`, and the library will generate an additional
 unit file which watches for changes to a flag file and restarts the
