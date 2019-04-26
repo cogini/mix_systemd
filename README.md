@@ -24,14 +24,10 @@ Here is [a complete example app which uses mix_deploy](https://github.com/cogini
 
 ## Installation
 
-Add `mix_systemd` to the list of dependencies in `mix.exs`:
+Add `mix_systemd` to `deps` in `mix.exs`:
 
 ```elixir
-def deps do
-  [
-    {:mix_systemd, "~> 0.1.0"}
-  ]
-end
+{:mix_systemd, "~> 0.1.0"},
 ```
 
 ## Usage
@@ -40,7 +36,7 @@ This library works similarly to [Distillery](https://hexdocs.pm/distillery/home.
 The `init` task copies template files into your project, then the `generate`
 task uses them to create the output files.
 
-Run this command to initialize templates under the `rel/templates/systemd` directory:
+First, initialize templates under the `rel/templates/systemd` directory:
 
 ```shell
 mix systemd.init
@@ -220,20 +216,22 @@ default 0027
 [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
 default 5 sec.
 
-`service_type`: `:simple | :exec | :notify | :forking`. Default `:forking`.
+`service_type`: `:simple | :exec | :notify | :forking`. Default `:simple`.
 
-In theory, "modern" applications are not supposed to fork. The Erlang VM runs
-pretty well in "foreground" mode, but it is really expecting to run as a
-standard Unix-style daemon. Systemd expects foregrounded apps to die when their
-pipe closes, so this library runs forking mode by default. It sets `pid_file`
-to `#{runtime_directory}/#{app_name}.pid` and sets the `PIDFILE` env var to tell
-the boot scripts where it is. See
+"Modern" applications are not supposed to fork, they run in the foreground and
+rely on the supervisor to manage them as a daemon. To do this, set
+`service_type` to `:simple` or `:exec`. Note that in `simple` mode, systemd
+doesn't actually check if the app started successfully, it just keeps going. If
+something depends on your app being up, `:exec` may be better.
+
+Set `service_type` to `:forking`, and this library sets `pid_file` to
+`#{runtime_directory}/#{app_name}.pid` and sets the `PIDFILE` env var to tell
+the boot scripts where it is.
+
+The Erlang VM runs pretty well in foreground mode, but it is really expecting
+to run as a standard Unix-style daemon, so forking might be better. Systemd
+expects foregrounded apps to die when their pipe closes. See
 https://elixirforum.com/t/systemd-cant-shutdown-my-foreground-app-cleanly/14581/2
-
-To run in foreground mode, set `service_type` to `:simple` or `:exec`. Note
-that in `simple` mode, systemd doesn't actually check if the app started
-successfully, it just keeps going. If something depends on your app being up,
-`:exec` may be better.
 
 `restart_method`: `:systemctl | :systemd_flag | :touch`. Default `:systemctl`
 

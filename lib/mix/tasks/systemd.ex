@@ -31,7 +31,7 @@ defmodule Mix.Tasks.Systemd do
     build_path = Mix.Project.build_path()
 
     defaults = [
-      service_type: :forking, # :simple | :exec | :notify | :forking
+      service_type: :simple, # :simple | :exec | :notify | :forking
 
       # Enable conform config file
       conform: false,
