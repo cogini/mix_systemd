@@ -94,14 +94,13 @@ follow systemd conventions.
 
 ### Directories
 
-Modern Linux defines a set of directories which apps use for common
-purposes, e.g. configuration or cache files.
-See https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
+We use the [standard app directories](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=),
+for modern Linux systems. App configuration is under `/etc`, transient files under `/run`, data under `/var/lib`.
 
-This library defines these directories based on the app name, e.g. `/etc/#{ext_name}`.
-It only creates directories that the app uses, default `runtime` (`/run/#{ext_name}`)
-and `configuration` (`/etc/#{ext_name}`). If your app uses other dirs, set them in the
-`dirs` var:
+Directories are named based on the app name, e.g. `/etc/#{ext_name}`.  We only
+create directories that the app uses, default `runtime` (`/run/#{ext_name}`)
+and `configuration` (`/etc/#{ext_name}`). If your app uses other dirs, set them
+in the `dirs` var:
 
 ```elixir
 dirs: [
@@ -115,9 +114,9 @@ dirs: [
 ],
 ```
 
-For security, we set permissions to 750, more restrictive than the
-systemd defaults of 755. You can configure them with e.g. `configuration_directory_mode`.
-See the defaults in `lib/mix/tasks/systemd.ex`.
+For security, we set permissions more restrictively than the systemd defaults.
+You can configure them with e.g. `configuration_directory_mode`. See the
+defaults in `lib/mix/tasks/systemd.ex`.
 
 More recent versions of systemd (after 235) will create these directories at start
 time based on the settings in the unit file. For earlier systemd versions, you need

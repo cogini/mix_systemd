@@ -103,14 +103,14 @@ defmodule Mix.Tasks.Systemd do
 
       # These are the standard directory locations under systemd for various purposes.
       # More recent versions of systemd will create directories if they don't exist.
-      # We default to modes which are tighter than the systemd default of 755.
+      # For security, we default to modes which are tighter than the systemd default of 755.
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
       cache_directory: service_name,
       cache_directory_base: "/var/cache",
       cache_directory_mode: "750",
       configuration_directory: service_name,
       configuration_directory_base: "/etc",
-      configuration_directory_mode: "750",
+      configuration_directory_mode: "550",
       logs_directory: service_name,
       logs_directory_base: "/var/log",
       logs_directory_mode: "750",
