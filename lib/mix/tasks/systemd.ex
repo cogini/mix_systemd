@@ -51,12 +51,12 @@ defmodule Mix.Tasks.Systemd do
       # Create runtime-environment file for app
       runtime_environment_service: false,
       # Service script name
-      runtime_environment_service_script: "deploy-runtime-environment-file",
+      runtime_environment_service_script: "bin/deploy-runtime-environment-file",
 
       # Wrap app in runtime-environment script
       runtime_environment_wrap: false,
       # Wrapper script name
-      runtime_environment_wrap_script: "deploy-runtime-environment-wrap",
+      runtime_environment_wrap_script: "bin/deploy-runtime-environment-wrap",
       # Start dependencies of wrapper script
       runtime_environment_service_after: "cloud-init.target",
 

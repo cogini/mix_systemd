@@ -7,41 +7,22 @@ After=local-fs.target network.target<%= if runtime_environment_wrap do %> <%= ru
 # https://www.freedesktop.org/software/systemd/man/systemd.service.html
 # https://github.com/systemd/systemd/blob/master/NEWS
 %>
-
-<% start_command = if service_type == :forking do
-"#{current_dir}/bin/#{app_name} start"
-else
-"#{current_dir}/bin/#{app_name} foreground"
-end
-%>
+<% start_command = if service_type == :forking, do: "start", else: "foreground" %>
+<% wrap_command = if runtime_environment_wrap, do: runtime_environment_wrap_script <> " ", else: "" %>
 
 [Service]
 Type=<%= service_type %>
 User=<%= app_user %>
 Group=<%= app_group %>
-WorkingDirectory=<%= current_dir %>
-
+WorkingDirectory=<%= deploy_dir %>
 <%= for command <- exec_start_pre do %>
-<%= if String.starts_with?(command, "/") do %>
 ExecStartPre=<%= command %>
-<% else %>
-ExecStartPre=<%= scripts_dir %>/<%= command %>
 <% end %>
-<% end %>
-
-<%= if runtime_environment_wrap do %>
-<%= if String.starts_with?(runtime_environment_wrap_script, "/") do %>
-ExecStart=<%= runtime_environment_wrap_script %> <%= start_command %>
-<% else %>
-ExecStart=<%= scripts_dir %>/<%= runtime_environment_wrap_script %> <%= start_command %>
-<% end %>
-<% else %>
-ExecStart=<%= start_command %>
-<% end %>
-
-ExecStop=<%= current_dir %>/bin/<%= app_name %> stop
+ExecStart=<%= "#{wrap_command}#{current_dir}/bin/#{app_name} #{start_command}" %>
+ExecStart=<%= "#{current_dir}/bin/#{app_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
+Environment=PORT=<%= env_port %>
 Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
 <%= case cookie_dir do
   :home ->
@@ -50,16 +31,10 @@ Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
     "Environment=DEFAULT_COOKIE_FILE=#{configuration_dir}/#{cookie_file}"
   :runtime_dir ->
     "Environment=DEFAULT_COOKIE_FILE=#{runtime_dir}/#{cookie_file}"
-  cookie_dir when is_binary(cookie_dir) ->
-    if String.starts_with?(cookie_dir, "/") do
-      "Environment=DEFAULT_COOKIE_FILE=#{cookie_dir}/#{cookie_file}"
-    else
-      ""
-    end
+  cookie_dir ->
+    "Environment=DEFAULT_COOKIE_FILE=#{cookie_dir}/#{cookie_file}"
 end
 %>
-
-Environment=PORT=<%= env_port %>
 <%= if conform do %>
 Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
 <% end %>
