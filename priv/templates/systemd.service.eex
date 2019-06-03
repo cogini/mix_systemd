@@ -19,7 +19,7 @@ WorkingDirectory=<%= deploy_dir %>
 ExecStartPre=<%= command %>
 <% end %>
 ExecStart=<%= "#{wrap_command}#{current_dir}/bin/#{app_name} #{start_command}" %>
-ExecStart=<%= "#{current_dir}/bin/#{app_name} stop" %>
+ExecStop=<%= "#{current_dir}/bin/#{app_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
 Environment=PORT=<%= env_port %>
