@@ -7,6 +7,7 @@ Type=oneshot
 User=<%= app_user %>
 Group=<%= app_group %>
 ExecStart=<%= scripts_dir %>/<%= runtime_environment_service_script %>
+Environment=DEPLOY_DIR=<%= deploy_dir %>
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
 <%= if systemd_version >= 235 do %>

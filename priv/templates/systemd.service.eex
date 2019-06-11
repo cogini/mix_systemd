@@ -23,6 +23,7 @@ ExecStop=<%= "#{current_dir}/bin/#{app_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
 Environment=PORT=<%= env_port %>
+Environment=DEPLOY_DIR=<%= deploy_dir %>
 Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
 <%= case cookie_dir do
   :home ->
