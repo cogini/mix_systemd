@@ -41,7 +41,7 @@ defmodule MixSystemd.MixProject do
   end
 
   defp description do
-    "Generates systemd unit file from template."
+    "Generates systemd unit files for an application."
   end
 
   defp package do
