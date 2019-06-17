@@ -11,6 +11,7 @@ defmodule MixSystemd.MixProject do
       description: description(),
       package: package(),
       source_url: "https://github.com/cogini/mix_systemd",
+      homepage_url: "https://github.com/cogini/mix_systemd",
       dialyzer: [
         plt_add_apps: [:mix, :eex]
         # plt_add_deps: true,
