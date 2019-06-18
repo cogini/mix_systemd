@@ -27,8 +27,28 @@ Here is [a complete example app which uses mix_deploy](https://github.com/cogini
 Add `mix_systemd` to `deps` in `mix.exs`:
 
 ```elixir
-{:mix_systemd, "~> 0.1.0"},
+{:mix_systemd, "~> 0.5.0"},
 ```
+
+## Configuration
+
+The library gets standard information in `mix.exs`, e.g. the app name and
+version, then calculates default values for its configuration parameters.
+
+You can override these parameters using settings in `config/config.exs`, e.g.:
+
+```elixir
+config :mix_systemd,
+    app_user: "app",
+    app_group: "app",
+    base_dir: "/opt",
+    env_vars: [
+        "REPLACE_OS_VARS=true",
+    ]
+```
+
+The library tries to choose smart defaults, so you may not need to configure
+anything. See below for more options.
 
 ## Usage
 
@@ -48,22 +68,7 @@ Next, generate output files under `_build/#{mix_env}/systemd/lib/systemd/system`
 MIX_ENV=prod mix systemd.generate
 ```
 
-## Configuration
-
-The library gets standard information in `mix.exs`, e.g. the app name and
-version, then calculates default values for its configuration parameters.
-
-You can override these parameters using settings in `config/config.exs`, e.g.:
-
-```elixir
-config :mix_systemd,
-    app_user: "app",
-    app_group: "app",
-    base_dir: "/opt",
-    env_vars: [
-        "REPLACE_OS_VARS=true",
-    ]
-```
+## Configuration options
 
 The following sections describe configuration options.
 See `lib/mix/tasks/systemd.ex` for all the details.
