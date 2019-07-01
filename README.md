@@ -273,7 +273,7 @@ which sets up the environment, then runs the main script with `exec`.
 Set `exec_start_wrap` to the name of the script, e.g.
 `deploy-runtime-environment-wrap` from `mix_deploy`.
 
-This is somewhat redundant with `rel/env.sh.eex` in Elixir 1.9, but it runs earlier,
+This is redundant with `rel/env.sh.eex` in Elixir 1.9, but it runs earlier,
 so it may still be useful.
 
 #### Runtime environment service

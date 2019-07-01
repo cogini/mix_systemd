@@ -83,12 +83,12 @@ defmodule Mix.Tasks.Systemd do
       restart_sec: 1,
 
       dirs: [
-        :runtime,         # needed for RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime-environment
-        :configuration,   # needed for Erlang cookie
-        # :logs,          # needed for external log file, not journald
-        # :cache,         # app cache files which can be deleted
-        # :state,         # app state persisted between runs
-        # :tmp,           # app temp files
+        :runtime,         # RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime-environment
+        :configuration,   # Config files, Erlang cookie
+        # :logs,          # External log file, not journald
+        # :cache,         # App cache files which can be deleted
+        # :state,         # App state persisted between runs
+        # :tmp,           # App temp files
       ],
 
       #####
