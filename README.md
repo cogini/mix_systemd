@@ -20,14 +20,14 @@ security and reliability.
 While it can be used standalone, more advanced use cases require scripts
 from e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
 
-Here is [a complete example app which uses mix_deploy](https://github.com/cogini/mix-systemd-deploy-example).
+Here is [a complete example app which uses mix_deploy](https://github.com/cogini/mix-deploy-example).
 
 ## Installation
 
 Add `mix_systemd` to `deps` in `mix.exs`:
 
 ```elixir
-{:mix_systemd, "~> 0.5.0"},
+{:mix_systemd, "~> 0.6.0"},
 ```
 
 ## Configuration
@@ -43,7 +43,7 @@ config :mix_systemd,
     app_group: "app",
     base_dir: "/opt",
     env_vars: [
-        "REPLACE_OS_VARS=true",
+        "MY_VAR=true",
     ]
 ```
 
@@ -52,9 +52,8 @@ anything. See below for more options.
 
 ## Usage
 
-This library works similarly to [Distillery](https://hexdocs.pm/distillery/home.html).
-The `init` task copies template files into your project, then the `generate`
-task uses them to create the output files.
+The `systemd.init` task copies template files from `mix_systemd` into your
+project, then the `systemd.generate` task uses them to create output files.
 
 First, initialize templates under the `rel/templates/systemd` directory:
 
@@ -88,10 +87,9 @@ Default is `app_name` with underscores converted to "-".
 
 `service_name`: Name of the systemd service, default `ext_name`.
 
-`base_dir`: Base directory where app files go, default `/srv` to
-follow systemd conventions.
+`base_dir`: Base directory for app files on the target, default `/srv`
 
-`deploy_dir`: Directory where app files go, default `#{base_dir}/#{ext_name}`
+`deploy_dir`: Directory for app files on the target, default `#{base_dir}/#{ext_name}`
 
 `app_user`: OS user account that the app runs under, default `ext_name`.
 
@@ -100,17 +98,16 @@ follow systemd conventions.
 ### Directories
 
 We use the [standard app directories](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=),
-for modern Linux systems. App configuration is under `/etc`, transient files under `/run`, data under `/var/lib`.
+for modern Linux systems. App files under `/srv`, configuration under
+`/etc`, transient files under `/run`, data under `/var/lib`.
 
-Directories are named based on the app name, e.g. `/etc/#{ext_name}`.  We only
-create directories that the app uses, default `runtime` (`/run/#{ext_name}`)
-and `configuration` (`/etc/#{ext_name}`). If your app uses other dirs, set them
-in the `dirs` var:
+Directories are named based on the app name, e.g. `/etc/#{ext_name}`.
+The `dirs` variable specifies which directories the app uses, by default:
 
 ```elixir
 dirs: [
   :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
-                  # Needed for RELEASE_MUTABLE_DIR, runtime-environment or conform
+                  # Used for RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime-environment
   :configuration, # App configuration, e.g. db passwords, /etc/#{ext_name}
   # :state,       # App data or state persisted between runs, /var/lib/#{ext_name}
   # :cache,       # App cache files which can be deleted, /var/cache/#{ext_name}
@@ -119,13 +116,14 @@ dirs: [
 ],
 ```
 
+Recent versions of systemd (after 235) will create these directories at
+start time based on the settings in the unit file. For earlier systemd
+versions, you need to create them beforehand using installation scripts, e.g.
+[mix_deploy](https://github.com/cogini/mix_deploy).
+
 For security, we set permissions more restrictively than the systemd defaults.
 You can configure them with e.g. `configuration_directory_mode`. See the
 defaults in `lib/mix/tasks/systemd.ex`.
-
-More recent versions of systemd (after 235) will create these directories at start
-time based on the settings in the unit file. For earlier systemd versions, you need
-to create them beforehand using scripts, e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
 
 `systemd_version`: Sets the systemd version on the target system, default 235.
 This determines which systemd features the library will enable. If you are
@@ -138,15 +136,15 @@ versions in common OS releases:
 
 ### Additional directories
 
-The library assumes a directory structure under `deploy_dir` which allows it to handle multiple releases,
-similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
+The library uses a directory structure under `deploy_dir` which supports
+multiple releases, similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
 
 * `scripts_dir`:  deployment scripts which e.g. start and stop the unit, default `bin`.
 * `current_dir`: where the current Erlang release is unpacked or referenced by symlink, default `current`.
 * `releases_dir`: where versioned releases are unpacked, default `releases`.
 * `flags_dir`: dir for flag files to trigger restart, e.g. when `restart_method` is `:systemd_flag`, default `flags`.
 
-When using multiple releases and symlinks, the deployment process works like this:
+When using multiple releases and symlinks, the deployment process works as follows:
 
 1. Create a new directory for the release with a timestamp like
    `/srv/foo/releases/20181114T072116`.
@@ -162,37 +160,20 @@ the `/srv/#{ext_name}/current` dir.
 
 ### Environment vars
 
-The library sets a few common env vars directly in the unit file:
+The library sets a few common env vars in the unit file:
 
-* `PORT`: `env_port` var, default 4000
-* `LANG`: `env_lang` var, default `en_US.UTF-8`
 * `MIX_ENV`: `mix_env` var, default `Mix.env()`
-* `RELEASE_MUTABLE_DIR`: default `runtime_dir`, e.g. `/run/#{ext_name}`
+* `LANG`: `env_lang` var, default `en_US.UTF-8`
+* `RELEASE_TMP`: `runtime_dir`, e.g. `/run/#{ext_name}`
+* `RUNTIME_DIR`: `runtime_dir`
+* `DEPLOY_DIR`: `deploy_dir`
+* `CONFIGURATION_DIR`: `configuration_dir`
 
-* `DEFAULT_COOKIE_FILE`: `cookie_dir` var, value `:home`, `:runtime_dir`,
-   `:configuration_dir`, or a string starting with "/".
-
-   Default is `:home`, which does not set the var. The default behavior of the VM boot scripts
-   will generate a cookie and write it to `$HOME/.erlang.cookie`.
-   If you specify a value for `cookie_dir`, then the systemd unit will set
-   `DEFAULT_COOKIE_FILE` to the corresponding directory and the startup scripts will
-   use it. `cookie_file` sets the name of the file in the dir, default `erlang.cookie`.
-
-   If you are only using the app on a single node, then the cookie is not important,
-   though it should be strong for security. If you need to connect to the node remotely
-   via a remote shell, you will need the cookie.
-
-   If you are running in a cluster, then they need to share the key, and you should
-   manage the cookie as a secret in your deployment process. In that case,
-   you can write it to the specified directory, and the Erlang node will use it.
-
-* `CONFORM_CONF_PATH`: Default `/etc/#{ext_name}/#{app_name}.conf`, set if `conform` var is `true`
-
-You can set misc additional vars in the `env_vars` config var, e.g.:
+You can set additional vars using the `env_vars` config var, e.g.:
 
 ```elixir
 env_vars: [
-    "REPLACE_OS_VARS=true",
+    "MY_VAR=true",
 ]
 ```
 
@@ -218,11 +199,11 @@ default 0027
 
 `restart_sec`: Time to wait between restarts, systemd
 [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
-default 5 sec.
+default 1 sec.
 
 `service_type`: `:simple | :exec | :notify | :forking`. Default `:simple`.
 
-"Modern" applications are not supposed to fork, they run in the foreground and
+Modern applications are not supposed to fork, they run in the foreground and
 rely on the supervisor to manage them as a daemon. To do this, set
 `service_type` to `:simple` or `:exec`. Note that in `simple` mode, systemd
 doesn't actually check if the app started successfully, it just keeps going. If
@@ -250,8 +231,8 @@ processes. `touch` the file `#{flags_dir}/restart.flag` and systemd will restart
 For configuration, we use a combination of build time settings, deploy
 time settings, and runtime settings.
 
-The configuration settings in `config/prod.exs` are baked into the release. We
-can then extend them with machine-specific configuration stored in the
+The configuration settings in `config/config.exs` are baked into the release.
+We can then extend them with machine-specific configuration stored in the
 configuration dir `/etc/#{ext_name}` which are read by the app on startup.
 
 In on-premises deployments, we might generate the machine-specific
@@ -259,59 +240,64 @@ configuration once when setting up the app.
 
 In cloud and other dynamic environments, we may run from a read-only image,
 e.g. an Amazon AMI, which gets configured at start up based on the environment
-by copying the config from an S3 bucket. We can also read configuration
-settings like database host and login from a configuration store like
+by copying the config from an S3 bucket or a configuration store like
 [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html)
 or etcd.
 
 Some things change dynamically each time the app starts, e.g. the IP address of
 the machine, or periodically, such as AWS access keys in an IAM instance role.
 
-[Conform](https://github.com/bitwalker/conform) is a popular way of making a
-machine-specific config file. Set `conform` to `true`, and the library will
-set `CONFORM_CONF_PATH` to `/etc/#{ext_name}/#{app_name}.conf`. Conform has been
-depreciated in favor of [TOML](https://github.com/bitwalker/toml-elixir), so
-you should use that instead.
-
 This library supports three ways to get runtime config:
 
 #### `ExecStartPre` scripts
 
-These scripts run before the main `ExecStart` script runs.
+Scripts specified in `exec_start_pre` run before the main `ExecStart` script
+runs, e.g.:
 
-You can specify multiple scripts in the `exec_start_pre` var. If the name
-starts with a slash, it is run directly, otherwise it is expected to be in the
-directory specified by `scripts_dir` (normally `#{deploy_dir}/bin`).
+```elixir
+exec_start_pre: [
+"!/srv/foo/bin/deploy-sync-config-s3"
+]
+```
 
-These scripts should generally write config to either the systemd
-`configuration_dir` (`/etc`) for persistent config or `runtime_dir` (`/run`)
-for data which systemd should clean up on restart.
+This runs the `deploy-sync-config-s3` script in `mix_deploy`, which
+copies config files from an S3 bucket into `/etc/foo`. By default,
+scripts run as the same user and group as the main script. Putting
+`!` in front makes the script run with [elevated privileges](https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStart=),
+allowing it to write to `/etc/foo` even if the main script cannot for security reasons.
 
-#### Wrapper script
+#### ExecStart wrapper script
 
-Instead of running the main `ExecStart` script directly, run a shell script which
-sets up the environment, then `exec` the main script.
+Instead of running the main `ExecStart` script directly, you can run a shell script
+which sets up the environment, then runs the main script with `exec`.
+Set `exec_start_wrap` to the name of the script, e.g.
+`deploy-runtime-environment-wrap` from `mix_deploy`.
 
-This is most useful for things that are truly dynamic and may change on restart.
-For example, if the app is in a cluster, we might get the IP address of the
-primary network interface to set the node name.
+This is somewhat redundant with `rel/env.sh.eex` in Elixir 1.9, but it runs earlier,
+so it may still be useful.
 
-Set `runtime_environment_wrap` to `true` and set
-`runtime_environment_wrap_script` to the name of the script. Default is the
-`deploy-runtime-environment-wrap` script from `mix_deploy`.
+#### Runtime environment service
 
-Systemd starts units in parallel when possible, but we may need to enforce ordering.
-Set `runtime_environment_service_after` to the names of systemd units that the
-script depends on. For example, set it to `cloud-init.target` if you are using cloud-init to get
-[runtime network information](https://cloudinit.readthedocs.io/en/latest/topics/network-config.html#network-configuration-outputs).
+You can run your own separate service to configure the runtime environment
+before the app runs.  Set `runtime_environment_service_script` to a script such
+as `deploy-runtime-environment-file` in `mix_deploy`.  The library will create
+a `#{service_name}-runtime-environment.service` unit and make it a systemd
+runtime dependency of the app.
 
-#### Systemd service
+### Runtime dependencies
 
-We can run our own service to collect runtime data and configure the system.
-Set `runtime_environment_service` to `true` and this library will create
-a service which runs the script specified by `runtime_environment_service_script`
-and make it a runtime dependency of the main script. This ensures that the data
-is available before the app starts.
+Systemd starts units in parallel when possible, but we may need to enforce
+ordering.  Set `unit_after_targets` to the names of systemd units that the
+script depends on.  For example, if you are using cloud-init to get [runtime
+network
+information](https://cloudinit.readthedocs.io/en/latest/topics/network-config.html#network-configuration-outputs),
+set:
+
+```elixir
+unit_after_targets: [
+    "cloud-init.target"
+]
+```
 
 ## Security
 

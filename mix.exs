@@ -4,8 +4,8 @@ defmodule MixSystemd.MixProject do
   def project do
     [
       app: :mix_systemd,
-      version: "0.5.0",
-      elixir: "~> 1.6",
+      version: "0.6.0",
+      elixir: "~> 1.9",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       description: description(),

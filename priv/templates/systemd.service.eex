@@ -1,15 +1,12 @@
 [Unit]
 Description=<%= service_name %> service
-After=local-fs.target network.target<%= if runtime_environment_wrap do %> <%= runtime_environment_service_after %><% end %><%= if runtime_environment_service do %> <%= service_name %>-runtime-environment.service<% end %>
+After=local-fs.target network.target<%= for target <- unit_after_targets do %> <%= target %><% end %>
 
 <%#
 # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 # https://www.freedesktop.org/software/systemd/man/systemd.service.html
 # https://github.com/systemd/systemd/blob/master/NEWS
 %>
-<% start_command = if service_type == :forking, do: "start", else: "foreground" %>
-<% wrap_command = if runtime_environment_wrap, do: runtime_environment_wrap_script <> " ", else: "" %>
-
 [Service]
 Type=<%= service_type %>
 User=<%= app_user %>
@@ -18,7 +15,7 @@ WorkingDirectory=<%= deploy_dir %>
 <%= for command <- exec_start_pre do %>
 ExecStartPre=<%= command %>
 <% end %>
-ExecStart=<%= "#{wrap_command}#{current_dir}/bin/#{app_name} #{start_command}" %>
+ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{app_name} #{start_command}" %>
 ExecStop=<%= "#{current_dir}/bin/#{app_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
@@ -26,21 +23,7 @@ Environment=PORT=<%= env_port %>
 Environment=DEPLOY_DIR=<%= deploy_dir %>
 Environment=CONFIGURATION_DIR=<%= configuration_dir %>
 Environment=RUNTIME_DIR=<%= runtime_dir %>
-Environment=RELEASE_MUTABLE_DIR=<%= runtime_dir %>
-<%= case cookie_dir do
-  :home ->
-    ""
-  :configuration_dir ->
-    "Environment=DEFAULT_COOKIE_FILE=#{configuration_dir}/#{cookie_file}"
-  :runtime_dir ->
-    "Environment=DEFAULT_COOKIE_FILE=#{runtime_dir}/#{cookie_file}"
-  cookie_dir ->
-    "Environment=DEFAULT_COOKIE_FILE=#{cookie_dir}/#{cookie_file}"
-end
-%>
-<%= if conform do %>
-Environment=CONFORM_CONF_PATH=<%= conform_conf_path %>
-<% end %>
+Environment=RELEASE_TMP=<%= runtime_dir %>
 <%= for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>

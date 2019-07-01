@@ -35,15 +35,13 @@ use Mix.Config
 # config :mix_systemd,
 #   # Enable restart from flag file
 #   restart_flag: true,
-#   # Enable conform config file
-#   conform: true,
 #   # Enable chroot
 #   chroot: true,
 #   # Enable extra restrictions
 #   paranoia: true,
 #   dirs: [
-#     :runtime, # for runtime-environment or conform
-#     # :configuration, # for conform or other app config file
+#     :runtime, # for runtime-environment
+#     # :configuration, # for app config files
 #     # :logs, # for external log file, not journald
 #     # :cache, # for app cache files which can be deleted
 #     # :state, # for app state persisted between runs
