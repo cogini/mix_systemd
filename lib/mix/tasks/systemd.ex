@@ -101,17 +101,23 @@ defmodule Mix.Tasks.Systemd do
       #
       # For security, we default to modes which are tighter than the systemd
       # default of 755.
+      cache_directory: service_name,
       cache_directory_base: "/var/cache",
+      configuration_directory: service_name,
       cache_directory_mode: "750",
       configuration_directory_base: "/etc",
       configuration_directory_mode: "550",
+      logs_directory: service_name,
       logs_directory_base: "/var/log",
       logs_directory_mode: "750",
+      runtime_directory: service_name,
       runtime_directory_base: "/run",
       runtime_directory_mode: "750",
       runtime_directory_preserve: "no",
+      state_directory: service_name,
       state_directory_base: "/var/lib",
       state_directory_mode: "750",
+      tmp_directory: service_name,
       tmp_directory_base: "/var/tmp",
       tmp_directory_mode: "750",
 
@@ -154,13 +160,6 @@ defmodule Mix.Tasks.Systemd do
 
     # Data calculated from other things
     Keyword.merge([
-      cache_directory: service_name,
-      configuration_directory: service_name,
-      logs_directory: service_name,
-      runtime_directory: service_name,
-      state_directory: service_name,
-      tmp_directory: service_name,
-
       releases_dir: Path.join(cfg[:deploy_dir], "releases"),
       scripts_dir: Path.join(cfg[:deploy_dir], "bin"),
       flags_dir: Path.join(cfg[:deploy_dir], "flags"),
