@@ -167,7 +167,7 @@ defmodule Mix.Tasks.Systemd do
       current_dir: Path.join(cfg[:deploy_dir], "current"),
 
       start_command: start_command(cfg[:service_type]),
-      exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap])
+      exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
       unit_after_targets: unit_after_targets(cfg[:runtime_environment_service_script], cfg),
 
       runtime_dir: Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
@@ -185,6 +185,20 @@ defmodule Mix.Tasks.Systemd do
       read_only_paths: [],
       inaccessible_paths: [],
     ], cfg)
+  end
+
+  defp start_command(service_type)
+  defp start_command(:forking), do: "daemon"
+  defp start_command(_), do: "start"
+
+  defp exec_start_wrap(""), do: ""
+  defp exec_start_wrap(script) do
+    if String.ends_with?(" "), do: script, else: script <> " "
+  end
+
+  defp unit_after_targets("", cfg), do: cfg[:unit_after_targets]
+  defp unit_after_targets(_, cfg) do
+    cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
   end
 end
 
@@ -266,17 +280,5 @@ defmodule Mix.Tasks.Systemd.Generate do
     target_file = Path.join(dest_dir, file)
     Mix.shell.info "Generating #{target_file} from template #{template}"
     Templates.write_template(cfg, dest_dir, template, file)
-  end
-
-  defp start_command(service_type)
-  defp start_command(:forking), do: "daemon"
-  defp start_command(_), do: "start"
-
-  defp exec_start_wrap(""), do: ""
-  defp exec_start_wrap(script), do: if String.ends_with?(" "), do: script, else: script <> " "
-
-  defp unit_after_targets("", cfg), do: cfg[:unit_after_targets]
-  defp unit_after_targets(_, cfg) do
-    cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
   end
 end
