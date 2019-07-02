@@ -193,7 +193,7 @@ defmodule Mix.Tasks.Systemd do
 
   defp exec_start_wrap(""), do: ""
   defp exec_start_wrap(script) do
-    if String.ends_with?(" "), do: script, else: script <> " "
+    if String.ends_with?(script, " "), do: script, else: script <> " "
   end
 
   defp unit_after_targets("", cfg), do: cfg[:unit_after_targets]
