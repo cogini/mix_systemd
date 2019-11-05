@@ -80,7 +80,7 @@ your own changes.
 
 `app_name`: Elixir application name, an atom, from the `app` field in the `mix.exs` project.
 
-`version`: `version` from the `mix.exs` project.
+`version`: Release version from the `version` field in the `mix.exs` project.
 
 `ext_name`: External name, used for files and directories.
 Default is `app_name` with underscores converted to "-".
