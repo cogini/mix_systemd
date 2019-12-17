@@ -34,6 +34,9 @@ defmodule Mix.Tasks.Systemd do
 
       restart_method: :systemctl, # :systemctl | :systemd_flag | :touch
 
+      # Whether we are using Distillery or Elixir 1.9 releases
+      distillery: false,
+
       # Wrapper script for ExecStart
       exec_start_wrap: "",
 
@@ -161,11 +164,12 @@ defmodule Mix.Tasks.Systemd do
     # Mix.shell.info "cfg: #{inspect cfg}"
 
     # Data calculated from other things
-    Keyword.merge([
+    cfg = Keyword.merge([
       releases_dir: Path.join(cfg[:deploy_dir], "releases"),
       scripts_dir: Path.join(cfg[:deploy_dir], "bin"),
       flags_dir: Path.join(cfg[:deploy_dir], "flags"),
       current_dir: Path.join(cfg[:deploy_dir], "current"),
+      working_dir: cfg[:working_dir] || cfg[:deploy_dir],
 
       start_command: start_command(cfg[:service_type]),
       exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
@@ -185,6 +189,10 @@ defmodule Mix.Tasks.Systemd do
       read_write_paths: [],
       read_only_paths: [],
       inaccessible_paths: [],
+    ], cfg)
+    # Settings which default to standard dirs computed above
+    Keyword.merge([
+      release_mutable_dir: cfg[:release_mutable_dir] || cfg[:runtime_dir],
     ], cfg)
   end
 

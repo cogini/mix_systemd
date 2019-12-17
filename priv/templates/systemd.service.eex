@@ -11,7 +11,7 @@ After=local-fs.target network.target<%= for target <- unit_after_targets do %> <
 Type=<%= service_type %>
 User=<%= app_user %>
 Group=<%= app_group %>
-WorkingDirectory=<%= deploy_dir %>
+WorkingDirectory=<%= working_dir %>
 <%= for command <- exec_start_pre do %>
 ExecStartPre=<%= command %>
 <% end %>
@@ -20,9 +20,13 @@ ExecStop=<%= "#{current_dir}/bin/#{app_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
 Environment=DEPLOY_DIR=<%= deploy_dir %>
-Environment=CONFIGURATION_DIR=<%= configuration_dir %>
-Environment=RUNTIME_DIR=<%= runtime_dir %>
-Environment=RELEASE_TMP=<%= runtime_dir %>
+<%= if :runtime in dirs do %>Environment=RUNTIME_DIR=<%= runtime_dir %><% end %>
+<%= if :configuration in dirs do %>Environment=CONFIGURATION_DIR=<%= configuration_dir %><% end %>
+<%= if :logs in dirs do %>Environment=LOGS_DIR=<%= logs_dir %><% end %>
+<%= if :cache in dirs do %>Environment=CACHE_DIR=<%= cache_dir %><% end %>
+<%= if :state in dirs do %>Environment=STATE_DIR=<%= state_dir %><% end %>
+<%= if :tmp in dirs do %>Environment=TMP_DIR=<%= tmp_dir %><% end %>
+<%= if distillery %>Environment=RELEASE_MUTABLE_DIR=<%= release_mutable_dir %><% end %>
 <%= for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>
