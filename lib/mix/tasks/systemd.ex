@@ -1,26 +1,27 @@
 defmodule Mix.Tasks.Systemd do
-  # Directory under _build where generated files are stored
+  # Directory under _build where generated files are stored,
+  # e.g. _build/prod/systemd
   @output_dir "systemd"
 
-  # Directory for user template files
+  # Directory where template files are copied in user project
   @template_dir "rel/templates/systemd"
 
   @spec parse_args(OptionParser.argv()) :: Keyword.t
   def parse_args(argv) do
-    opts = [
-      strict: [
-        version: :string,
-      ]
-    ]
+    opts = [strict: [version: :string]]
     {overrides, _} = OptionParser.parse!(argv, opts)
 
     user_config = Application.get_all_env(:mix_systemd)
     mix_config = Mix.Project.config()
 
+    # Elixir app name, from mix.exs
     app_name = mix_config[:app]
+
+    # External name, used for files and directories
     ext_name = app_name
                |> to_string
                |> String.replace("_", "-")
+
     service_name = ext_name
 
     base_dir = user_config[:base_dir] || "/srv"
@@ -36,11 +37,11 @@ defmodule Mix.Tasks.Systemd do
       # Wrapper script for ExecStart
       exec_start_wrap: "",
 
-      # Start unit after other targets
+      # Start unit after other systemd unit targets
       unit_after_targets: [],
 
       # Runtime configuration service
-      runtime_environment_service_script: "",
+      runtime_environment_service_script: nil,
 
       # Enable chroot
       chroot: false,
@@ -69,7 +70,7 @@ defmodule Mix.Tasks.Systemd do
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=
       umask: "0027",
 
-      # Misc env vars to set
+      # Misc env vars to set, e.g.
       # env_vars: [
       #  "REPLACE_OS_VARS=true",
       # ]
@@ -101,6 +102,7 @@ defmodule Mix.Tasks.Systemd do
       #
       # For security, we default to modes which are tighter than the systemd
       # default of 755.
+      # Note that these are strings, not integers.
       cache_directory: service_name,
       cache_directory_base: "/var/cache",
       configuration_directory: service_name,
@@ -187,14 +189,17 @@ defmodule Mix.Tasks.Systemd do
   end
 
   defp start_command(service_type)
+  # https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-daemon-mode-unix-like
   defp start_command(:forking), do: "daemon"
-  defp start_command(_), do: "start"
+  defp start_command(type) when type in [:simple, :exec, :notify], do: "start"
+  defp start_command(type), do: type
 
   defp exec_start_wrap(""), do: ""
   defp exec_start_wrap(script) do
     if String.ends_with?(script, " "), do: script, else: script <> " "
   end
 
+  defp unit_after_targets(nil, cfg), do: cfg[:unit_after_targets]
   defp unit_after_targets("", cfg), do: cfg[:unit_after_targets]
   defp unit_after_targets(_, cfg) do
     cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
@@ -269,7 +274,7 @@ defmodule Mix.Tasks.Systemd.Generate do
       write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
     end
 
-    if cfg[:runtime_environment_service_script] != "" do
+    if cfg[:runtime_environment_service_script] do
       write_template(cfg, dest_dir, "runtime-environment.service", "#{service_name}-runtime-environment.service")
     end
 

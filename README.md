@@ -32,7 +32,7 @@ Add `mix_systemd` to `deps` in `mix.exs`:
 
 ## Configuration
 
-The library gets standard information in `mix.exs`, e.g. the app name and
+The library gets standard information from `mix.exs`, e.g. the app name and
 version, then calculates default values for its configuration parameters.
 
 You can override these parameters using settings in `config/config.exs`, e.g.:
@@ -55,13 +55,14 @@ anything. See below for more options.
 The `systemd.init` task copies template files from `mix_systemd` into your
 project, then the `systemd.generate` task uses them to create output files.
 
-First, initialize templates under the `rel/templates/systemd` directory:
+First, copy the templates to `rel/templates/systemd` directory:
 
 ```shell
 mix systemd.init
 ```
 
-Next, generate output files under `_build/#{mix_env}/systemd/lib/systemd/system`.
+Next, generate output files in the build directory under
+`_build/#{mix_env}/systemd/lib/systemd/system`.
 
 ```shell
 MIX_ENV=prod mix systemd.generate
@@ -139,7 +140,7 @@ versions in common OS releases:
 The library uses a directory structure under `deploy_dir` which supports
 multiple releases, similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
 
-* `scripts_dir`:  deployment scripts which e.g. start and stop the unit, default `bin`.
+* `scripts_dir`: deployment scripts which e.g. start and stop the unit, default `bin`.
 * `current_dir`: where the current Erlang release is unpacked or referenced by symlink, default `current`.
 * `releases_dir`: where versioned releases are unpacked, default `releases`.
 * `flags_dir`: dir for flag files to trigger restart, e.g. when `restart_method` is `:systemd_flag`, default `flags`.
@@ -155,7 +156,7 @@ When using multiple releases and symlinks, the deployment process works as follo
 
 4. Restart the app.
 
-If you are only keeping a single version, then you would deploy it to
+If you are only keeping a single version, then deploy it to
 the `/srv/#{ext_name}/current` dir.
 
 ### Environment vars
@@ -169,7 +170,7 @@ The library sets a few common env vars in the unit file:
 * `DEPLOY_DIR`: `deploy_dir`
 * `CONFIGURATION_DIR`: `configuration_dir`
 
-You can set additional vars using the `env_vars` config var, e.g.:
+You can set additional vars using `env_vars`, e.g.:
 
 ```elixir
 env_vars: [
@@ -179,7 +180,7 @@ env_vars: [
 
 The unit file also attempts to read environment vars from a series of files:
 
-* `etc/environment` within the release, e.g. `/srv/app/currrent/etc/environment`
+* `etc/environment` within the release, e.g. `/srv/app/current/etc/environment`
 * `#{deploy_dir}/etc/environment`, e.g. `/srv/app/etc/environment`
 * `#{configuration_dir}/environment`, e.g. `/etc/app/environment`
 * `#{runtime_dir}/runtime-environment`, e.g. `/run/app/runtime-environment`
@@ -195,7 +196,7 @@ default 65535.
 
 `umask`: Process umask, systemd
 [UMask](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=),
-default 0027
+default "0027"
 
 `restart_sec`: Time to wait between restarts, systemd
 [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
@@ -206,8 +207,9 @@ default 1 sec.
 Modern applications are not supposed to fork, they run in the foreground and
 rely on the supervisor to manage them as a daemon. To do this, set
 `service_type` to `:simple` or `:exec`. Note that in `simple` mode, systemd
-doesn't actually check if the app started successfully, it just keeps going. If
-something depends on your app being up, `:exec` may be better.
+doesn't actually check if the app started successfully, it just continues
+starting other units. If something depends on your app being up, `:exec` may be
+better.
 
 Set `service_type` to `:forking`, and this library sets `pid_file` to
 `#{runtime_directory}/#{app_name}.pid` and sets the `PIDFILE` env var to tell
