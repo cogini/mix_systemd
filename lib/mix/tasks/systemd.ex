@@ -171,7 +171,7 @@ defmodule Mix.Tasks.Systemd do
       current_dir: Path.join(cfg[:deploy_dir], "current"),
       working_dir: cfg[:working_dir] || cfg[:deploy_dir],
 
-      start_command: start_command(cfg[:service_type]),
+      start_command: start_command(cfg[:service_type], cfg[:distillery]),
       exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
       unit_after_targets: unit_after_targets(cfg[:runtime_environment_service_script], cfg),
 
@@ -196,11 +196,13 @@ defmodule Mix.Tasks.Systemd do
     ], cfg)
   end
 
-  defp start_command(service_type)
+  defp start_command(service_type, is_distillery)
   # https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-daemon-mode-unix-like
-  defp start_command(:forking), do: "daemon"
-  defp start_command(type) when type in [:simple, :exec, :notify], do: "start"
-  defp start_command(type), do: type
+  defp start_command(:forking, false), do: "daemon"
+  defp start_command(type, false) when type in [:simple, :exec, :notify], do: "start"
+  defp start_command(:forking, true), do: "start"
+  defp start_command(type, true) when type in [:simple, :exec, :notify], do: "foreground"
+  defp start_command(type, _), do: type
 
   defp exec_start_wrap(""), do: ""
   defp exec_start_wrap(script) do
