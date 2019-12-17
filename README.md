@@ -135,6 +135,9 @@ versions in common OS releases:
 * Ubuntu 16.04: 229
 * Ubuntu 18.04: 237
 
+`distillery`: Determines if the release will be generated with Distillery
+or Elixir 1.9 native releases. Default is `false` to use native releases.
+
 ### Additional directories
 
 The library uses a directory structure under `deploy_dir` which supports
@@ -161,14 +164,22 @@ the `/srv/#{ext_name}/current` dir.
 
 ### Environment vars
 
-The library sets a few common env vars in the unit file:
+The library sets env vars in the unit file:
 
 * `MIX_ENV`: `mix_env` var, default `Mix.env()`
 * `LANG`: `env_lang` var, default `en_US.UTF-8`
-* `RELEASE_TMP`: `runtime_dir`, e.g. `/run/#{ext_name}`
-* `RUNTIME_DIR`: `runtime_dir`
 * `DEPLOY_DIR`: `deploy_dir`
-* `CONFIGURATION_DIR`: `configuration_dir`
+
+* `RUNTIME_DIR`: `runtime_dir`, set if `:runtime` in `dirs`
+* `CONFIGURATION_DIR`: `configuration_dir`, set if `:configuration` in `dirs`
+* `LOGS_DIR`: `logs_dir`, set if `:logs` in `dirs`
+* `CACHE_DIR`: `cache_dir`, set if `:cache` in `dirs`
+* `STATE_DIR`: `state_dir`, set if `:state` in `dirs`
+* `TMP_DIR`: `tmp_dir`, set if `:tmp` in `dirs`
+* `RELEASE_MUTABLE_DIR`: `release_mutable_dir` (default `runtime_dir`), set if `distillery: true`
+
+## TODO: should be set in env.sh
+* `RELEASE_TMP`: `runtime_dir`, e.g. `/run/#{ext_name}`
 
 You can set additional vars using `env_vars`, e.g.:
 
@@ -189,6 +200,10 @@ Later values override earlier values, so you can set defaults which get
 overridden in the deployment or runtime environment.
 
 ### Systemd and OS
+
+`working_dir`: Current working dir for app. systemd
+[WorkingDirectory](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#WorkingDirectory=),
+default `deploy_dir`.
 
 `limit_nofile`: Limit on open files, systemd
 [LimitNOFILE](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=),
