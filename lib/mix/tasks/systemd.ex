@@ -193,9 +193,12 @@ defmodule Mix.Tasks.Systemd do
     # Settings which default to standard dirs computed above
     Keyword.merge([
       release_mutable_dir: cfg[:release_mutable_dir] || cfg[:runtime_dir],
+      release_tmp: cfg[:release_tmp] || cfg[:runtime_dir],
     ], cfg)
   end
 
+  # Set release start comand based on systemd service type
+  @spec start_command(atom, boolean) :: string
   defp start_command(service_type, is_distillery)
   # https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-daemon-mode-unix-like
   defp start_command(:forking, false), do: "daemon"
