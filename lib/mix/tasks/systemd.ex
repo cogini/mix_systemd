@@ -32,13 +32,13 @@ defmodule Mix.Tasks.Systemd do
       # Service start type
       service_type: :simple, # :simple | :exec | :notify | :forking
 
-      restart_method: :systemctl, # :systemctl | :systemd_flag | :touch
+      restart_method: :systemctl, # :systemctl | :systemd_flag
 
-      # Whether we are using Distillery or Elixir 1.9 releases
-      distillery: false,
+      # Elixir 1.9+ releases or Distillery
+      release_system: :mix, # :mix | :distillery
 
       # Wrapper script for ExecStart
-      exec_start_wrap: "",
+      exec_start_wrap: nil,
 
       # Start unit after other systemd unit targets
       unit_after_targets: [],
@@ -155,41 +155,51 @@ defmodule Mix.Tasks.Systemd do
 
       # Directory with templates which override defaults
       template_dir: @template_dir,
+
+      # Name in logs
+      syslog_identifier: service_name,
+
+      read_write_paths: [],
+      read_only_paths: [],
+      inaccessible_paths: [],
     ]
 
+    # Override values from user config
     cfg = defaults
           |> Keyword.merge(user_config)
           |> Keyword.merge(overrides)
 
     # Mix.shell.info "cfg: #{inspect cfg}"
 
-    # Data calculated from other things
+    # Calcualate values from other things
     cfg = Keyword.merge([
-      releases_dir: Path.join(cfg[:deploy_dir], "releases"),
-      scripts_dir: Path.join(cfg[:deploy_dir], "bin"),
-      flags_dir: Path.join(cfg[:deploy_dir], "flags"),
-      current_dir: Path.join(cfg[:deploy_dir], "current"),
+      releases_dir: cfg[:releases_dir] || Path.join(cfg[:deploy_dir], "releases"),
+      scripts_dir: cfg[:scripts_dir] || Path.join(cfg[:deploy_dir], "bin"),
+      flags_dir: cfg[:flags_dir] || Path.join(cfg[:deploy_dir], "flags"),
+      current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
       working_dir: cfg[:working_dir] || cfg[:deploy_dir],
 
-      start_command: start_command(cfg[:service_type], cfg[:distillery]),
+      start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
       exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
-      unit_after_targets: unit_after_targets(cfg[:runtime_environment_service_script], cfg),
+      unit_after_targets: if cfg[:runtime_environment_service_script] do
+        cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
+      else
+        cfg[:unit_after_targets]
+      end,
 
-      runtime_dir: Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
-      configuration_dir: Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
-      logs_dir: Path.join(cfg[:logs_directory_base], cfg[:logs_directory]),
-      tmp_dir: Path.join(cfg[:tmp_directory_base], cfg[:tmp_directory]),
-      state_dir: Path.join(cfg[:state_directory_base], cfg[:state_directory]),
-      cache_dir: Path.join(cfg[:cache_directory_base], cfg[:cache_directory]),
+      runtime_dir: cfg[:runtime_dir] || Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
+      configuration_dir: cfg[:configuration_dir] || Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
+      logs_dir: cfg[:logs_dir] || Path.join(cfg[:logs_directory_base], cfg[:logs_directory]),
+      tmp_dir: cfg[:logs_dir] || Path.join(cfg[:tmp_directory_base], cfg[:tmp_directory]),
+      state_dir: cfg[:state_dir] || Path.join(cfg[:state_directory_base], cfg[:state_directory]),
+      cache_dir: cfg[:cache_dir] || Path.join(cfg[:cache_directory_base], cfg[:cache_directory]),
 
-      pid_file: Path.join([cfg[:runtime_directory_base], cfg[:runtime_directory], "#{app_name}.pid"]),
+      pid_file: cfg[:pid_file] || Path.join([cfg[:runtime_directory_base], cfg[:runtime_directory], "#{app_name}.pid"]),
 
       # Chroot config
-      root_directory: Path.join(cfg[:deploy_dir], "current"),
-      read_write_paths: [],
-      read_only_paths: [],
-      inaccessible_paths: [],
+      root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
     ], cfg)
+
     # Settings which default to standard dirs computed above
     Keyword.merge([
       release_mutable_dir: cfg[:release_mutable_dir] || cfg[:runtime_dir],
@@ -197,25 +207,21 @@ defmodule Mix.Tasks.Systemd do
     ], cfg)
   end
 
-  # Set release start comand based on systemd service type
-  @spec start_command(atom, boolean) :: string
-  defp start_command(service_type, is_distillery)
+  @doc "Set start comand based on systemd service type and release system"
+  @spec start_command(atom, atom) :: binary
+  def start_command(service_type, release_system)
   # https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-daemon-mode-unix-like
-  defp start_command(:forking, false), do: "daemon"
-  defp start_command(type, false) when type in [:simple, :exec, :notify], do: "start"
-  defp start_command(:forking, true), do: "start"
-  defp start_command(type, true) when type in [:simple, :exec, :notify], do: "foreground"
-  defp start_command(type, _), do: type
+  def start_command(:forking, :mix), do: "daemon"
+  def start_command(type, :mix) when type in [:simple, :exec, :notify], do: "start"
+  # https://hexdocs.pm/distillery/tooling/cli.html#release-tasks
+  def start_command(:forking, :distillery), do: "start"
+  def start_command(type, :distillery) when type in [:simple, :exec, :notify], do: "foreground"
 
-  defp exec_start_wrap(""), do: ""
-  defp exec_start_wrap(script) do
+  @doc "Make sure that script name has a space afterwards"
+  @spec exec_start_wrap(nil | binary) :: binary
+  def exec_start_wrap(nil), do: ""
+  def exec_start_wrap(script) do
     if String.ends_with?(script, " "), do: script, else: script <> " "
-  end
-
-  defp unit_after_targets(nil, cfg), do: cfg[:unit_after_targets]
-  defp unit_after_targets("", cfg), do: cfg[:unit_after_targets]
-  defp unit_after_targets(_, cfg) do
-    cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
   end
 end
 

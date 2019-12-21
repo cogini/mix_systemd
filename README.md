@@ -103,7 +103,7 @@ for modern Linux systems. App files under `/srv`, configuration under
 `/etc`, transient files under `/run`, data under `/var/lib`.
 
 Directories are named based on the app name, e.g. `/etc/#{ext_name}`.
-The `dirs` variable specifies which directories the app uses, by default:
+The `dirs` variable specifies which directories the app uses, by default that is:
 
 ```elixir
 dirs: [
@@ -118,13 +118,13 @@ dirs: [
 ```
 
 Recent versions of systemd (after 235) will create these directories at
-start time based on the settings in the unit file. For earlier systemd
-versions, you need to create them beforehand using installation scripts, e.g.
+start time based on the settings in the unit file. With earlier systemd
+versions, create them beforehand using installation scripts, e.g.
 [mix_deploy](https://github.com/cogini/mix_deploy).
 
 For security, we set permissions more restrictively than the systemd defaults.
-You can configure them with e.g. `configuration_directory_mode`. See the
-defaults in `lib/mix/tasks/systemd.ex`.
+You can configure them by setting varialbles such as `configuration_directory_mode`.
+See the defaults in `lib/mix/tasks/systemd.ex`.
 
 `systemd_version`: Sets the systemd version on the target system, default 235.
 This determines which systemd features the library will enable. If you are
@@ -135,8 +135,12 @@ versions in common OS releases:
 * Ubuntu 16.04: 229
 * Ubuntu 18.04: 237
 
-`distillery`: Determines if the release will be generated with Distillery
-or Elixir 1.9 native releases. Default is `false` to use native releases.
+`release_system`: `:mix | :distillery`, default `:mix`
+
+Identifies the system which was used to generate the releases,
+[Mix](https://hexdocs.pm/mix/Mix.Tasks.Release.html) or
+[Distillery](https://hexdocs.pm/distillery/home.html).
+This configures the command which starts the system and some environment vars.
 
 ### Additional directories
 
@@ -170,16 +174,14 @@ The library sets env vars in the unit file:
 * `LANG`: `env_lang` var, default `en_US.UTF-8`
 * `DEPLOY_DIR`: `deploy_dir`
 
-* `RUNTIME_DIR`: `runtime_dir`, set if `:runtime` in `dirs`
-* `CONFIGURATION_DIR`: `configuration_dir`, set if `:configuration` in `dirs`
-* `LOGS_DIR`: `logs_dir`, set if `:logs` in `dirs`
-* `CACHE_DIR`: `cache_dir`, set if `:cache` in `dirs`
-* `STATE_DIR`: `state_dir`, set if `:state` in `dirs`
-* `TMP_DIR`: `tmp_dir`, set if `:tmp` in `dirs`
-* `RELEASE_MUTABLE_DIR`: `release_mutable_dir` (default `runtime_dir`), set if `distillery: true`
-
-## TODO: should be set in env.sh
-* `RELEASE_TMP`: `runtime_dir`, e.g. `/run/#{ext_name}`
+* `RUNTIME_DIR`: `runtime_dir`, if `:runtime` in `dirs`
+* `CONFIGURATION_DIR`: `configuration_dir`, if `:configuration` in `dirs`
+* `LOGS_DIR`: `logs_dir`, if `:logs` in `dirs`
+* `CACHE_DIR`: `cache_dir`, if `:cache` in `dirs`
+* `STATE_DIR`: `state_dir`, if `:state` in `dirs`
+* `TMP_DIR`: `tmp_dir`, if `:tmp` in `dirs`
+* `RELEASE_TMP`: `release_tmp`, default `runtime_dir`, if `release_system == :mix`
+* `RELEASE_MUTABLE_DIR`: `release_mutable_dir`, default `runtime_dir`, if `release_system == :distillery`
 
 You can set additional vars using `env_vars`, e.g.:
 
@@ -201,6 +203,8 @@ overridden in the deployment or runtime environment.
 
 ### Systemd and OS
 
+The following variables set systemd variables:
+
 `working_dir`: Current working dir for app. systemd
 [WorkingDirectory](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#WorkingDirectory=),
 default `deploy_dir`.
@@ -217,6 +221,10 @@ default "0027"
 [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
 default 1 sec.
 
+`syslog_identifier`: Logging name, systemd
+[SyslogIdentifier](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#SyslogIdentifier=),
+default `service_name`
+
 `service_type`: `:simple | :exec | :notify | :forking`. Default `:simple`.
 
 Modern applications are not supposed to fork, they run in the foreground and
@@ -230,18 +238,19 @@ Set `service_type` to `:forking`, and this library sets `pid_file` to
 `#{runtime_directory}/#{app_name}.pid` and sets the `PIDFILE` env var to tell
 the boot scripts where it is.
 
-The Erlang VM runs pretty well in foreground mode, but it is really expecting
-to run as a standard Unix-style daemon, so forking might be better. Systemd
+The Erlang VM runs pretty well in foreground mode, but traditionally it runs
+as a standard Unix-style daemon, so forking might be better. Systemd
 expects foregrounded apps to die when their pipe closes. See
 https://elixirforum.com/t/systemd-cant-shutdown-my-foreground-app-cleanly/14581/2
 
-`restart_method`: `:systemctl | :systemd_flag | :touch`. Default `:systemctl`
+`restart_method`: `:systemctl | :systemd_flag`. Default `:systemctl`
 
 Set this to `:systemd_flag`, and the library will generate an additional
 unit file which watches for changes to a flag file and restarts the
 main unit. This allows updates to be pushed to the target machine by an
 unprivileged user account which does not have permissions to restart
-processes. `touch` the file `#{flags_dir}/restart.flag` and systemd will restart the unit.
+processes. `touch` the file `#{flags_dir}/restart.flag` and systemd will
+restart the unit.
 
 ### Runtime configuration
 
@@ -290,7 +299,7 @@ which sets up the environment, then runs the main script with `exec`.
 Set `exec_start_wrap` to the name of the script, e.g.
 `deploy-runtime-environment-wrap` from `mix_deploy`.
 
-This is redundant with `rel/env.sh.eex` in Elixir 1.9, but it runs earlier,
+This is redundant with `rel/env.sh.eex` in Elixir 1.9+, but it runs earlier,
 so it may still be useful.
 
 #### Runtime environment service
@@ -303,10 +312,9 @@ runtime dependency of the app.
 
 ### Runtime dependencies
 
-Systemd starts units in parallel when possible, but we may need to enforce
-ordering.  Set `unit_after_targets` to the names of systemd units that the
-script depends on.  For example, if you are using cloud-init to get [runtime
-network
+Systemd starts units in parallel when possible. To enforce ordering, set
+`unit_after_targets` to the names of systemd units that this unit depends on.
+For example, if this unit should run after cloud-init to get [runtime network
 information](https://cloudinit.readthedocs.io/en/latest/topics/network-config.html#network-configuration-outputs),
 set:
 
