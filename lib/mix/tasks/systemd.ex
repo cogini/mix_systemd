@@ -46,6 +46,8 @@ defmodule Mix.Tasks.Systemd do
       # Runtime configuration service
       runtime_environment_service_script: nil,
 
+      readonly_release: false,
+
       # Enable chroot
       chroot: false,
 
@@ -200,11 +202,14 @@ defmodule Mix.Tasks.Systemd do
       root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
     ], cfg)
 
-    # Settings which default to standard dirs computed above
-    Keyword.merge([
-      release_mutable_dir: cfg[:release_mutable_dir] || cfg[:runtime_dir],
-      release_tmp: cfg[:release_tmp] || cfg[:runtime_dir],
-    ], cfg)
+    if cfg[:readonly_release] do
+      Keyword.merge([
+        release_mutable_dir: cfg[:release_mutable_dir] || cfg[:runtime_dir],
+        release_tmp: cfg[:release_tmp] || cfg[:runtime_dir],
+      ], cfg)
+    else
+      cfg
+    end
   end
 
   @doc "Set start comand based on systemd service type and release system"

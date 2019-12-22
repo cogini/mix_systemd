@@ -142,6 +142,7 @@ Identifies the system which was used to generate the releases,
 [Distillery](https://hexdocs.pm/distillery/home.html).
 This configures the command which starts the system and some environment vars.
 
+
 ### Additional directories
 
 The library uses a directory structure under `deploy_dir` which supports
@@ -180,8 +181,27 @@ The library sets env vars in the unit file:
 * `CACHE_DIR`: `cache_dir`, if `:cache` in `dirs`
 * `STATE_DIR`: `state_dir`, if `:state` in `dirs`
 * `TMP_DIR`: `tmp_dir`, if `:tmp` in `dirs`
+
+By default, the release startup scripts assume that they can write startup logs
+to the `logs` directory under the release, e.g. `/srv/foo/current/logs` and it
+can write config temp files to `/srv/foo/current/tmp` dir.
+
+For added security, you can instead deploy the app using a different user
+account from the one that the app runs under. In that case, you need to either
+make these directories writable by the app user or set an environment variable
+to tell the release where it can write its files. For Mix releases, that is
+`RELEASE_TMP` and for Distillery it is `RELEASE_MUTABLE_DIR`.
+
 * `RELEASE_TMP`: `release_tmp`, default `runtime_dir`, if `release_system == :mix`
 * `RELEASE_MUTABLE_DIR`: `release_mutable_dir`, default `runtime_dir`, if `release_system == :distillery`
+
+If `release_readonly` is `true`, then the library will set the corresponding
+environment variable `runtime_dir`.
+
+This directory will generally get cleaned up automatically by the OS when the
+app restarts, which can be annoying when debugging startup issues.  In that
+case, set `RELEASE_TMP/RELEASE_MUTABLE_DIR` to e.g. `/tmp` or the
+application `:tmp` dir so that you can see what is happening.
 
 You can set additional vars using `env_vars`, e.g.:
 
@@ -249,7 +269,7 @@ Set this to `:systemd_flag`, and the library will generate an additional
 unit file which watches for changes to a flag file and restarts the
 main unit. This allows updates to be pushed to the target machine by an
 unprivileged user account which does not have permissions to restart
-processes. `touch` the file `#{flags_dir}/restart.flag` and systemd will
+processes. Touch the file `#{flags_dir}/restart.flag` and systemd will
 restart the unit.
 
 ### Runtime configuration
@@ -324,7 +344,9 @@ unit_after_targets: [
 ]
 ```
 
+
 ## Security
+
 
 `paranoia`: Enable systemd security options, default `false`.
 
