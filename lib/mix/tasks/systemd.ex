@@ -165,6 +165,12 @@ defmodule Mix.Tasks.Systemd do
       read_write_paths: [],
       read_only_paths: [],
       inaccessible_paths: [],
+
+      # Location of release tmp dir, RELEASE_TMP env var
+      release_tmp: nil,
+
+      # Location of release tmp dir, RELEASE_MUTABLE_DIR env var
+      release_mutable_dir: nil,
     ]
 
     # Override values from user config
