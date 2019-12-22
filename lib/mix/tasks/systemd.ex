@@ -46,9 +46,6 @@ defmodule Mix.Tasks.Systemd do
       # Runtime configuration service
       runtime_environment_service_script: nil,
 
-      # Whether release files are read-only to the app user
-      readonly_release: false,
-
       # Enable chroot
       chroot: false,
 
@@ -165,12 +162,6 @@ defmodule Mix.Tasks.Systemd do
       read_write_paths: [],
       read_only_paths: [],
       inaccessible_paths: [],
-
-      # Location of release tmp dir, RELEASE_TMP env var
-      release_tmp: nil,
-
-      # Location of release tmp dir, RELEASE_MUTABLE_DIR env var
-      release_mutable_dir: nil,
     ]
 
     # Override values from user config
@@ -209,14 +200,7 @@ defmodule Mix.Tasks.Systemd do
       root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
     ], cfg)
 
-    if cfg[:readonly_release] do
-      Keyword.merge([
-        release_mutable_dir: cfg[:release_mutable_dir] || cfg[:runtime_dir],
-        release_tmp: cfg[:release_tmp] || cfg[:runtime_dir],
-      ], cfg)
-    else
-      cfg
-    end
+    Keyword.put(cfg, :env_vars, expand_vars(cfg))
   end
 
   @doc "Set start comand based on systemd service type and release system"
@@ -234,6 +218,17 @@ defmodule Mix.Tasks.Systemd do
   def exec_start_wrap(nil), do: ""
   def exec_start_wrap(script) do
     if String.ends_with?(script, " "), do: script, else: script <> " "
+  end
+
+  def expand_vars(cfg) do
+    Enum.reduce(cfg[:env_vars], [],
+      fn(value, acc) when is_binary(value) ->
+          [value | acc]
+        ({key, value}, acc) when is_atom(value) ->
+          ["#{key}=#{cfg[value]}" | acc]
+        ({key, value}, acc) ->
+          ["#{key}=#{value}" | acc]
+      end)
   end
 end
 

@@ -26,8 +26,6 @@ Environment=DEPLOY_DIR=<%= deploy_dir %>
 <%= if :cache in dirs do %>Environment=CACHE_DIR=<%= cache_dir %><% end %>
 <%= if :state in dirs do %>Environment=STATE_DIR=<%= state_dir %><% end %>
 <%= if :tmp in dirs do %>Environment=TMP_DIR=<%= tmp_dir %><% end %>
-<%= if release_system == :mix and release_tmp do %>Environment=RELEASE_TMP=<%= release_tmp %><% end %>
-<%= if release_system == :distillery and release_mutable_dir do %>Environment=RELEASE_MUTABLE_DIR=<%= release_mutable_dir %><% end %>
 <%= for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>
