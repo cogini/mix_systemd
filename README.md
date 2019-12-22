@@ -108,7 +108,7 @@ The `dirs` variable specifies which directories the app uses, by default that is
 ```elixir
 dirs: [
   :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
-                  # Used for RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime-environment
+                  # Used for RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime environment
   :configuration, # App configuration, e.g. db passwords, /etc/#{ext_name}
   # :state,       # App data or state persisted between runs, /var/lib/#{ext_name}
   # :cache,       # App cache files which can be deleted, /var/cache/#{ext_name}
@@ -216,7 +216,7 @@ The unit file also attempts to read environment vars from a series of files:
 * `etc/environment` within the release, e.g. `/srv/app/current/etc/environment`
 * `#{deploy_dir}/etc/environment`, e.g. `/srv/app/etc/environment`
 * `#{configuration_dir}/environment`, e.g. `/etc/app/environment`
-* `#{runtime_dir}/runtime-environment`, e.g. `/run/app/runtime-environment`
+* `#{runtime_dir}/environment`, e.g. `/run/app/environment`
 
 Later values override earlier values, so you can set defaults which get
 overridden in the deployment or runtime environment.

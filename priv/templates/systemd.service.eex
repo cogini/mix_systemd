@@ -36,7 +36,7 @@ EnvironmentFile=-<%= deploy_dir %>/etc/environment
 <%= if :configuration in dirs do %>
 EnvironmentFile=-<%= configuration_dir %>/environment
 <% end %>
-EnvironmentFile=-<%= runtime_dir %>/runtime-environment
+EnvironmentFile=-<%= runtime_dir %>/environment
 <%= if service_type == :forking do %>
 Environment=PIDFILE=<%= pid_file %>
 PIDFile=<%= pid_file %>

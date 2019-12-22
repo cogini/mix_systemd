@@ -1,5 +1,5 @@
 [Unit]
-Description=<%= service_name %> runtime-environment
+Description=<%= service_name %> runtime environment
 After=local-fs.target <%= runtime_environment_service_after %>
 
 [Service]

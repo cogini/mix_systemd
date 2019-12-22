@@ -40,7 +40,7 @@ use Mix.Config
 #   # Enable extra restrictions
 #   paranoia: true,
 #   dirs: [
-#     :runtime, # for runtime-environment
+#     :runtime, # for runtime environment
 #     # :configuration, # for app config files
 #     # :logs, # for external log file, not journald
 #     # :cache, # for app cache files which can be deleted

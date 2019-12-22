@@ -46,6 +46,7 @@ defmodule Mix.Tasks.Systemd do
       # Runtime configuration service
       runtime_environment_service_script: nil,
 
+      # Whether release files are read-only to the app user
       readonly_release: false,
 
       # Enable chroot
@@ -89,7 +90,7 @@ defmodule Mix.Tasks.Systemd do
       restart_sec: 1,
 
       dirs: [
-        :runtime,         # RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime-environment
+        :runtime,         # RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime environment
         :configuration,   # Config files, Erlang cookie
         # :logs,          # External log file, not journald
         # :cache,         # App cache files which can be deleted
