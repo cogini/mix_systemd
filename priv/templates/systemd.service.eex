@@ -31,7 +31,7 @@ Environment=DEPLOY_DIR=<%= deploy_dir %>
 <%= for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>
-<%= if release_system == :distillery %>EnvironmentFile=-<%= current_dir %>/etc/environment<% end %>
+<%= if release_system == :distillery do %>EnvironmentFile=-<%= current_dir %>/etc/environment<% end %>
 EnvironmentFile=-<%= deploy_dir %>/etc/environment
 <%= if :configuration in dirs do %>
 EnvironmentFile=-<%= configuration_dir %>/environment
