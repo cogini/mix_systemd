@@ -1,15 +1,14 @@
 defmodule Mix.Tasks.Systemd do
-  # Directory under _build where generated files are stored,
+  # Directory where `mix systemd.generate` stores output files,
   # e.g. _build/prod/systemd
   @output_dir "systemd"
 
-  # Directory where template files are copied in user project
+  # Directory where `mix systemd.init` copies templates in user project
   @template_dir "rel/templates/systemd"
 
   @spec parse_args(OptionParser.argv()) :: Keyword.t
   def parse_args(argv) do
-    opts = [strict: [version: :string]]
-    {overrides, _} = OptionParser.parse!(argv, opts)
+    {overrides, _} = OptionParser.parse!(argv, [])
 
     user_config = Application.get_all_env(:mix_systemd)
     mix_config = Mix.Project.config()
@@ -22,42 +21,48 @@ defmodule Mix.Tasks.Systemd do
                |> to_string
                |> String.replace("_", "-")
 
+    # Name of systemd unit
     service_name = ext_name
+
+    # Elixir camel case module name version of snake case app name
+    module_name = app_name
+                  |> to_string
+                  |> String.split("_")
+                  |> Enum.map(&String.capitalize/1)
+                  |> Enum.join("")
 
     base_dir = user_config[:base_dir] || "/srv"
 
     build_path = Mix.Project.build_path()
 
     defaults = [
+      # Elixir application name
+      app_name: app_name,
+
+      # Elixir module name in camel case
+      module_name: module_name,
+
       # Name of release
       release_name: app_name,
 
-      # Service start type
-      service_type: :simple, # :simple | :exec | :notify | :forking
+      # External name, used for files and directories
+      ext_name: ext_name,
 
-      restart_method: :systemctl, # :systemctl | :systemd_flag
+      # Name of service
+      service_name: service_name,
 
-      # Mix releases in Elixir 1.9+ or Distillery
-      release_system: :mix, # :mix | :distillery
-
-      # Wrapper script for ExecStart
-      exec_start_wrap: nil,
-
-      # Start unit after other systemd unit targets
-      unit_after_targets: [],
-
-      # Runtime configuration service
-      runtime_environment_service_script: nil,
-
-      # Enable chroot
-      chroot: false,
-
-      # Enable extra restrictions
-      paranoia: false,
-
-      # OS user to own files and run app
+      # OS user to run app
       app_user: ext_name,
       app_group: ext_name,
+
+      # Name in logs
+      syslog_identifier: service_name,
+
+      # Base directory on target system, e.g. /srv
+      base_dir: base_dir,
+
+      # Directory for release files on target
+      deploy_dir: "#{base_dir}/#{ext_name}",
 
       # Target systemd version
       # systemd_version: 219, # CentOS 7
@@ -65,7 +70,65 @@ defmodule Mix.Tasks.Systemd do
       # systemd_version: 237, # Ubuntu 18.04
       systemd_version: 235,
 
-      # LANG environment var
+      dirs: [
+        :runtime,         # RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime environment
+        :configuration,   # Config files, Erlang cookie
+        # :logs,          # External log file, not journald
+        # :cache,         # App cache files which can be deleted
+        # :state,         # App state persisted between runs
+        # :tmp,           # App temp files
+      ],
+
+      # Standard directory locations for under systemd for various purposes.
+      # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
+      #
+      # Recent versions of systemd will create directories if they don't exist
+      # if they are specified in the unit file.
+      #
+      # For security, we default to modes which are tighter than the systemd
+      # default of 755.
+      # Note that these are strings, not integers.
+      cache_directory: service_name,
+      cache_directory_base: "/var/cache",
+      cache_directory_mode: "750",
+      configuration_directory: service_name,
+      configuration_directory_base: "/etc",
+      configuration_directory_mode: "750",
+      logs_directory: service_name,
+      logs_directory_base: "/var/log",
+      logs_directory_mode: "750",
+      runtime_directory: service_name,
+      runtime_directory_base: "/run",
+      runtime_directory_mode: "750",
+      runtime_directory_preserve: "no",
+      state_directory: service_name,
+      state_directory_base: "/var/lib",
+      state_directory_mode: "750",
+      tmp_directory: service_name,
+      tmp_directory_base: "/var/tmp",
+      tmp_directory_mode: "750",
+
+      # Mix releases in Elixir 1.9+ or Distillery
+      release_system: :mix, # :mix | :distillery
+
+      # Service start type
+      service_type: :simple, # :simple | :exec | :notify | :forking
+
+      # How service is restarted on update
+      restart_method: :systemctl, # :systemctl | :systemd_flag | :touch
+
+      # Mix build_path
+      build_path: build_path,
+
+      # Staging output directory for generated files
+      output_dir: Path.join(build_path, @output_dir),
+
+      # Directory with templates which override defaults
+      template_dir: @template_dir,
+
+      mix_env: Mix.env(),
+
+      # LANG environment var for running scripts
       env_lang: "en_US.UTF-8",
 
       # Number of open file descriptors, LimitNOFILE
@@ -83,6 +146,8 @@ defmodule Mix.Tasks.Systemd do
       # ]
       env_vars: [],
 
+      runtime_environment_service_script: nil,
+
       # ExecStartPre commands to run before ExecStart
       exec_start_pre: [],
 
@@ -90,82 +155,20 @@ defmodule Mix.Tasks.Systemd do
       # https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=
       restart_sec: 1,
 
-      dirs: [
-        :runtime,         # RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime environment
-        :configuration,   # Config files, Erlang cookie
-        # :logs,          # External log file, not journald
-        # :cache,         # App cache files which can be deleted
-        # :state,         # App state persisted between runs
-        # :tmp,           # App temp files
-      ],
+      # Wrapper script for ExecStart
+      exec_start_wrap: nil,
 
-      #####
+      # Start unit after other systemd unit targets
+      unit_after_targets: [],
 
-      # Standard directory locations for under systemd for various purposes.
-      # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
-      #
-      # Recent versions of systemd will create directories if they don't exist
-      # if they are specified in the unit file.
-      #
-      # For security, we default to modes which are tighter than the systemd
-      # default of 755.
-      # Note that these are strings, not integers.
-      cache_directory: service_name,
-      cache_directory_base: "/var/cache",
-      configuration_directory: service_name,
-      cache_directory_mode: "750",
-      configuration_directory_base: "/etc",
-      configuration_directory_mode: "550",
-      logs_directory: service_name,
-      logs_directory_base: "/var/log",
-      logs_directory_mode: "750",
-      runtime_directory: service_name,
-      runtime_directory_base: "/run",
-      runtime_directory_mode: "750",
-      runtime_directory_preserve: "no",
-      state_directory: service_name,
-      state_directory_base: "/var/lib",
-      state_directory_mode: "750",
-      tmp_directory: service_name,
-      tmp_directory_base: "/var/tmp",
-      tmp_directory_mode: "750",
-
-      mix_env: Mix.env(),
-
-      # Elixir application name, an atom
-      app_name: app_name,
-
-      # External name, used for files and directories
-      ext_name: ext_name,
-
-      # Name of service
-      service_name: service_name,
-
-      # TODO: get this from release config?
-      # App version
-      version: mix_config[:version],
-
-      # Base directory on target system
-      base_dir: base_dir,
-
-      # Directory for release files on target
-      deploy_dir: "#{base_dir}/#{ext_name}",
-
-      # Mix build_path
-      build_path: build_path,
-
-      # Staging output directory for generated files
-      output_dir: Path.join(build_path, @output_dir),
-
-      # Directory with templates which override defaults
-      template_dir: @template_dir,
-
-      # Name in logs
-      syslog_identifier: service_name,
-
+      # Enable chroot
+      chroot: false,
       read_write_paths: [],
       read_only_paths: [],
       inaccessible_paths: [],
+
+      # Enable extra restrictions
+      paranoia: false,
     ]
 
     # Override values from user config
@@ -293,10 +296,6 @@ end
 defmodule Mix.Tasks.Systemd.Generate do
   @moduledoc """
   Create systemd unit files for Elixir project.
-
-  ## Command line options
-
-    * `--version` - selects a specific app version
 
   ## Usage
 
