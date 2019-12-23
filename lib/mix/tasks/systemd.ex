@@ -181,7 +181,6 @@ defmodule Mix.Tasks.Systemd do
       scripts_dir: cfg[:scripts_dir] || Path.join(cfg[:deploy_dir], "bin"),
       flags_dir: cfg[:flags_dir] || Path.join(cfg[:deploy_dir], "flags"),
       current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
-      working_dir: cfg[:working_dir] || cfg[:current_dir],
 
       start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
       exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
@@ -204,6 +203,12 @@ defmodule Mix.Tasks.Systemd do
       root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
     ], cfg)
 
+    # Set things based on values computed above
+    cfg = Keyword.merge([
+      working_dir: cfg[:working_dir] || cfg[:current_dir],
+    ], cfg)
+
+    # Expand values in env vars
     Keyword.put(cfg, :env_vars, expand_vars(cfg))
   end
 
