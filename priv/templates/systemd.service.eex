@@ -15,8 +15,8 @@ WorkingDirectory=<%= working_dir %>
 <%= for command <- exec_start_pre do %>
 ExecStartPre=<%= command %>
 <% end %>
-ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{app_name} #{start_command}" %>
-ExecStop=<%= "#{current_dir}/bin/#{app_name} stop" %>
+ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{release_name} #{start_command}" %>
+ExecStop=<%= "#{current_dir}/bin/#{release_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
 Environment=DEPLOY_DIR=<%= deploy_dir %>

@@ -29,12 +29,15 @@ defmodule Mix.Tasks.Systemd do
     build_path = Mix.Project.build_path()
 
     defaults = [
+      # Name of release
+      release_name: app_name,
+
       # Service start type
       service_type: :simple, # :simple | :exec | :notify | :forking
 
       restart_method: :systemctl, # :systemctl | :systemd_flag
 
-      # Elixir 1.9+ releases or Distillery
+      # Mix releases in Elixir 1.9+ or Distillery
       release_system: :mix, # :mix | :distillery
 
       # Wrapper script for ExecStart
@@ -76,6 +79,7 @@ defmodule Mix.Tasks.Systemd do
       # Misc env vars to set, e.g.
       # env_vars: [
       #  "REPLACE_OS_VARS=true",
+      #  {"RELEASE_MUTABLE_DIR", :runtime_dir}
       # ]
       env_vars: [],
 
@@ -177,7 +181,7 @@ defmodule Mix.Tasks.Systemd do
       scripts_dir: cfg[:scripts_dir] || Path.join(cfg[:deploy_dir], "bin"),
       flags_dir: cfg[:flags_dir] || Path.join(cfg[:deploy_dir], "flags"),
       current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
-      working_dir: cfg[:working_dir] || cfg[:deploy_dir],
+      working_dir: cfg[:working_dir] || cfg[:current_dir],
 
       start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
       exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
@@ -220,14 +224,16 @@ defmodule Mix.Tasks.Systemd do
     if String.ends_with?(script, " "), do: script, else: script <> " "
   end
 
+  @doc "Expand symbolic vars in env vars"
+  @spec expand_vars(Keyword.t) :: Keyword.t
   def expand_vars(cfg) do
     Enum.reduce(cfg[:env_vars], [],
       fn(value, acc) when is_binary(value) ->
           [value | acc]
-        ({key, value}, acc) when is_atom(value) ->
-          ["#{key}=#{cfg[value]}" | acc]
-        ({key, value}, acc) ->
-          ["#{key}=#{value}" | acc]
+        ({name, value}, acc) when is_atom(value) ->
+          ["#{name}=#{cfg[value]}" | acc]
+        ({name, value}, acc) ->
+          ["#{name}=#{value}" | acc]
       end)
   end
 end
