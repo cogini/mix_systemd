@@ -176,8 +176,6 @@ defmodule Mix.Tasks.Systemd do
           |> Keyword.merge(user_config)
           |> Keyword.merge(overrides)
 
-    # Mix.shell.info "cfg: #{inspect cfg}"
-
     # Calcualate values from other things
     cfg = Keyword.merge([
       releases_dir: cfg[:releases_dir] || Path.join(cfg[:deploy_dir], "releases"),
@@ -213,6 +211,8 @@ defmodule Mix.Tasks.Systemd do
 
     # Expand values in env vars
     expand_env_vars(cfg)
+
+    # Mix.shell.info "cfg: #{inspect cfg}"
   end
 
   @doc "Set start comand based on systemd service type and release system"
@@ -264,7 +264,7 @@ end
 
 defmodule Mix.Tasks.Systemd.Init do
   @moduledoc """
-  Initialize systemd template files.
+  Initialize template files.
 
   ## Command line options
 
@@ -275,7 +275,7 @@ defmodule Mix.Tasks.Systemd.Init do
       # Copy default templates into your project
       mix systemd.init
   """
-  @shortdoc "Initialize systemd template files"
+  @shortdoc "Initialize template files"
   use Mix.Task
 
   @app :mix_systemd
@@ -295,7 +295,7 @@ end
 
 defmodule Mix.Tasks.Systemd.Generate do
   @moduledoc """
-  Create systemd unit files for Elixir project.
+  Create systemd unit files for project.
 
   ## Usage
 
