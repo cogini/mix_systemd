@@ -8,7 +8,8 @@ defmodule Mix.Tasks.Systemd do
 
   @spec parse_args(OptionParser.argv()) :: Keyword.t
   def parse_args(argv) do
-    {overrides, _} = OptionParser.parse!(argv, [])
+    opts = [strict: [version: :string]]
+    {overrides, _} = OptionParser.parse!(argv, opts)
 
     user_config = Application.get_all_env(:mix_systemd)
     mix_config = Mix.Project.config()
