@@ -209,7 +209,7 @@ defmodule Mix.Tasks.Systemd do
     ], cfg)
 
     # Expand values in env vars
-    Keyword.put(cfg, :env_vars, expand_vars(cfg))
+    expand_env_vars(cfg)
   end
 
   @doc "Set start comand based on systemd service type and release system"
@@ -230,9 +230,10 @@ defmodule Mix.Tasks.Systemd do
   end
 
   @doc "Expand symbolic vars in env vars"
-  @spec expand_vars(Keyword.t) :: Keyword.t
-  def expand_vars(cfg) do
-    Enum.reduce(cfg[:env_vars], [],
+  @spec expand_env_vars(Keyword.t) :: Keyword.t
+  def expand_env_vars(cfg) do
+    env_vars =
+      Enum.reduce(cfg[:env_vars], [],
       fn(value, acc) when is_binary(value) ->
           [value | acc]
         ({name, value}, acc) when is_atom(value) ->
@@ -240,7 +241,22 @@ defmodule Mix.Tasks.Systemd do
         ({name, value}, acc) ->
           ["#{name}=#{value}" | acc]
       end)
+    Keyword.put(cfg, :env_vars, env_vars)
   end
+
+  @doc "Expand references in values"
+  def expand_vars(cfg, keys) do
+    Enum.reduce(keys, cfg,
+      fn(key, acc) ->
+        value = acc[key]
+        if is_atom(value) and cfg[value] do
+          Keyword.put(acc, key, value)
+        else
+          acc
+        end
+      end)
+  end
+
 end
 
 defmodule Mix.Tasks.Systemd.Init do
