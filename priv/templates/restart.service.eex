@@ -5,7 +5,6 @@ After=local-fs.target
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/systemctl restart <%= service_name %>.service
-Environment=DEPLOY_DIR=<%= deploy_dir %>
 
 [Install]
 WantedBy=multi-user.target
