@@ -130,7 +130,7 @@ defmodule Mix.Tasks.Systemd do
       mix_env: Mix.env(),
 
       # LANG environment var for running scripts
-      env_lang: "en_US.UTF-8",
+      env_lang: "C.UTF-8",
 
       # Number of open file descriptors, LimitNOFILE
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=
