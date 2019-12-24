@@ -19,7 +19,6 @@ ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{release_name} #{start_comm
 ExecStop=<%= "#{current_dir}/bin/#{release_name} stop" %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
-Environment=DEPLOY_DIR=<%= deploy_dir %>
 <%= if :runtime in dirs do %>Environment=RUNTIME_DIR=<%= runtime_dir %><% end %>
 <%= if :configuration in dirs do %>Environment=CONFIGURATION_DIR=<%= configuration_dir %><% end %>
 <%= if :logs in dirs do %>Environment=LOGS_DIR=<%= logs_dir %><% end %>
@@ -89,17 +88,20 @@ ProtectKernelTunables=yes
 ProtectControlGroups=yes
 <% end %>
 <%= if systemd_version >= 233 do %>MountAPIVFS=yes<% end %>
-
+<%#
 # RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 # SELinuxContext=
 # AppArmorProfile=
 # SmackProcessLabel=
+%>
 <% end %>
+<%#
 # KillMode=process # default control-group
 # TimeoutSec=10
 # RemainAfterExit=no
 # https://elixirforum.com/t/distillery-node-is-not-running-and-non-zero-exit-code/3834
 # SuccessExitStatus=143
+%>
 
 [Install]
 WantedBy=multi-user.target
