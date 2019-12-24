@@ -1,17 +1,21 @@
 [Unit]
 Description=<%= service_name %> runtime environment
-After=local-fs.target <%= runtime_environment_service_after %>
+After=local-fs.target<%= for target <- runtime_environment_unit_after_targets do %> <%= target %><% end %>
 
 [Service]
 Type=oneshot
 User=<%= app_user %>
 Group=<%= app_group %>
 ExecStart=<%= scripts_dir %>/<%= runtime_environment_service_script %>
-Environment=DEPLOY_DIR=<%= deploy_dir %>
+<%= if :runtime in dirs do %>
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
 <%= if systemd_version >= 235 do %>
 RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
+<% end %>
+<% end %>
+<%= for env <- env_vars do %>
+Environment=<%= env %>
 <% end %>
 
 [Install]
