@@ -17,7 +17,7 @@ ExecStartPre=<%= command %>
 <% end %>
 ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{release_name} #{start_command}" %>
 ExecStop=<%= "#{current_dir}/bin/#{release_name} stop" %>
-Environment=LANG=<%= env_lang %>
+Environment=LANG=C.UTF-8
 Environment=MIX_ENV=<%= mix_env %>
 <%= if :runtime in dirs do %>Environment=RUNTIME_DIR=<%= runtime_dir %><% end %>
 <%= if :configuration in dirs do %>Environment=CONFIGURATION_DIR=<%= configuration_dir %><% end %>

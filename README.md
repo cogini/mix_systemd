@@ -173,8 +173,7 @@ the directory `/srv/#{ext_name}/current`.
 The library sets env vars in the unit file:
 
 * `MIX_ENV`: `mix_env`, default `Mix.env()`
-* `LANG`: `env_lang`, default `C.UTF-8`
-* `DEPLOY_DIR`: `deploy_dir`
+* `LANG`: `C.UTF-8`
 
 * `RUNTIME_DIR`: `runtime_dir`, if `:runtime` in `dirs`
 * `CONFIGURATION_DIR`: `configuration_dir`, if `:configuration` in `dirs`
@@ -190,8 +189,7 @@ env_vars: [
     "PORT=8080",
 ]
 ```
-You can also reference the value of other parameters by
-name, e.g.:
+You can also reference the value of other parameters by name, e.g.:
 
 ```elixir
 env_vars: [
