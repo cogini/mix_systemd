@@ -162,6 +162,9 @@ defmodule Mix.Tasks.Systemd do
       # Start unit after other systemd unit targets
       unit_after_targets: [],
 
+      # Start runtime environment script after other systemd unit targets
+      runtime_environment_unit_after_targets: [],
+
       # Enable chroot
       chroot: false,
       read_write_paths: [],
