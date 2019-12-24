@@ -243,10 +243,12 @@ env_vars: [
 ]
 ```
 
-Systemd will delete the runtime directory when restarting the app, which can be
-annoying when debugging startup issues.  In that case, set
-`RELEASE_TMP/RELEASE_MUTABLE_DIR` to e.g. `/tmp` or the application `:tmp_dir`
-so that you can see what is happening.
+By default systemd will delete the runtime directory when restarting the app,
+which can be annoying when debugging startup issues. You can set
+`runtime_directory_preserve` to `restart` or `yes` (see
+[RuntimeDirectoryPreserve](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectoryPreserve=)).
+You can also set `RELEASE_TMP/RELEASE_MUTABLE_DIR` to `/tmp` or the application
+`:tmp_dir` so that you can see what is happening.
 
 ### Systemd and OS
 
