@@ -25,15 +25,12 @@ Environment=MIX_ENV=<%= mix_env %>
 <%= if :cache in dirs do %>Environment=CACHE_DIR=<%= cache_dir %><% end %>
 <%= if :state in dirs do %>Environment=STATE_DIR=<%= state_dir %><% end %>
 <%= if :tmp in dirs do %>Environment=TMP_DIR=<%= tmp_dir %><% end %>
+<%= for file <- env_files do %>
+EnvironmentFile=<%= file %>
+<% end %>
 <%= for env <- env_vars do %>
 Environment=<%= env %>
 <% end %>
-<%= if release_system == :distillery do %>EnvironmentFile=-<%= current_dir %>/etc/environment<% end %>
-EnvironmentFile=-<%= deploy_dir %>/etc/environment
-<%= if :configuration in dirs do %>
-EnvironmentFile=-<%= configuration_dir %>/environment
-<% end %>
-EnvironmentFile=-<%= runtime_dir %>/environment
 <%= if service_type == :forking do %>
 Environment=PIDFILE=<%= pid_file %>
 PIDFile=<%= pid_file %>

@@ -139,13 +139,23 @@ defmodule Mix.Tasks.Systemd do
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=
       umask: "0027",
 
+      # env files to read, e.g.
+      # env_files: [
+      #   ["-", :configuration_dir, "environment"],
+      # ],
+      # The "-" at the beginning means that the file is optional
+      env_files: [
+        ["-", :configuration_dir],
+      ],
+
       # Misc env vars to set, e.g.
       # env_vars: [
       #  "REPLACE_OS_VARS=true",
-      #  {"RELEASE_MUTABLE_DIR", :runtime_dir}
+      #  ["RELEASE_MUTABLE_DIR", :runtime_dir]
       # ]
       env_vars: [],
 
+      # Script to run in runtime environment service
       runtime_environment_service_script: nil,
 
       # ExecStartPre commands to run before ExecStart
@@ -181,6 +191,17 @@ defmodule Mix.Tasks.Systemd do
 
       # Enable extra restrictions
       paranoia: false,
+
+      expand_keys: [
+        :env_files,
+        :env_vars,
+        :runtime_environment_service_script,
+        :exec_start_pre,
+        :exec_start_wrap,
+        :read_write_paths,
+        :read_only_paths,
+        :inaccessible_paths,
+      ]
     ]
 
     # Override values from user config
@@ -221,8 +242,7 @@ defmodule Mix.Tasks.Systemd do
       working_dir: cfg[:working_dir] || cfg[:current_dir],
     ], cfg)
 
-    # Expand values in env vars
-    expand_env_vars(cfg)
+    expand_keys(cfg, cfg[:expand_keys])
 
     # Mix.shell.info "cfg: #{inspect cfg}"
   end
@@ -244,33 +264,40 @@ defmodule Mix.Tasks.Systemd do
     if String.ends_with?(value, " "), do: value, else: value <> " "
   end
 
-  @doc "Expand symbolic vars in env vars"
-  @spec expand_env_vars(Keyword.t) :: Keyword.t
-  def expand_env_vars(cfg) do
-    env_vars =
-      Enum.reduce(cfg[:env_vars], [],
-      fn(value, acc) when is_binary(value) ->
-          [value | acc]
-        ({name, value}, acc) when is_atom(value) ->
-          ["#{name}=#{cfg[value]}" | acc]
-        ({name, value}, acc) ->
-          ["#{name}=#{value}" | acc]
+  @doc "Expand cfg vars in keys"
+  @spec expand_keys(Keyword.t, list(atom)) :: Keyword.t
+  def expand_keys(cfg, keys) do
+    Enum.reduce(Keyword.take(cfg, keys), cfg,
+      fn({key, value}, acc) ->
+        Keyword.put(acc, key, expand_value(value, acc))
       end)
-    Keyword.put(cfg, :env_vars, env_vars)
   end
 
-  @doc "Expand references in values"
-  def expand_vars(cfg, keys) do
-    Enum.reduce(keys, cfg,
-      fn(key, acc) ->
-        value = acc[key]
-        if is_atom(value) and cfg[value] do
-          Keyword.put(acc, key, value)
-        else
-          acc
-        end
-      end)
+  @doc "Expand vars in value or list of values"
+  @spec expand_value(term, Keyword.t) :: binary
+  def expand_value(values, cfg) when is_list(values) do
+    Enum.map(values, &expand_vars(&1, cfg))
   end
+  def expand_value(value, cfg), do: expand_vars(value, cfg)
+
+  @doc "Expand references in values"
+  @spec expand_vars(term, Keyword.t) :: binary
+  def expand_vars(value, _cfg) when is_binary(value), do: value
+  def expand_vars(nil, _cfg), do: ""
+  def expand_vars(key, cfg) when is_atom(key) do
+    case Keyword.fetch(cfg, key) do
+      {:ok, value} ->
+        expand_vars(value, cfg)
+      :error ->
+        to_string(key)
+    end
+  end
+  def expand_vars(terms, cfg) when is_list(terms) do
+    terms
+    |> Enum.map(&expand_vars(&1, cfg))
+    |> Enum.join("")
+  end
+  def expand_vars(value, _cfg), do: to_string(value)
 
 end
 
@@ -338,7 +365,7 @@ defmodule Mix.Tasks.Systemd.Generate do
       write_template(cfg, dest_dir, "restart.path", "#{service_name}-restart.path")
     end
 
-    if cfg[:runtime_environment_service_script] do
+    if cfg[:runtime_environment_service] do
       write_template(cfg, dest_dir, "runtime-environment.service", "#{service_name}-runtime-environment.service")
     end
 

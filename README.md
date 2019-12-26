@@ -46,17 +46,19 @@ config :mix_systemd,
     app_group: "app",
     base_dir: "/opt",
     env_vars: [
-        "PORT=8080",
+      "PORT=8080",
     ]
 ```
 
-Following is a more secure config which deploys the app using a
-different user account from what the app runs under, so the
-release source dirs are readonly to the app. It runs a script on startup which
-pulls app config from S3 in TOML format, putting it in the `/etc/app` dir. It
-uses a
-[config provider](https://hexdocs.pm/elixir/Config.Provider.html) to load files
-in [TOML](https://hexdocs.pm/toml_config/readme.html), which needs to write
+Following is a more secure config which deploys the app using a different user
+account from what the app runs under, so the release source dirs are readonly
+to the app.
+
+It runs the script `/srv/app/bin/deploy-sync-config-s3` on startup
+wich pulls app config from S3 in TOML format, putting it in the `/etc/app` dir.
+The "!" at the beginnning means the script should be run as root, not as the app user.
+It uses a [config provider](https://hexdocs.pm/elixir/Config.Provider.html) to load files in
+[TOML](https://hexdocs.pm/toml_config/readme.html), which needs to write
 a temp file to `/run/app`. It sets `runtime_directory_preserve` to `yes`
 to help in debugging startup issues.
 
@@ -65,7 +67,7 @@ config :mix_systemd,
   app_user: "app",
   app_group: "app",
   exec_start_pre: [
-    "!/srv/app/bin/deploy-sync-config-s3"
+    ["!", :deploy_dir, "/bin/deploy-sync-config-s3"]
   ],
   dirs: [
     :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
@@ -76,8 +78,12 @@ config :mix_systemd,
     # :tmp,           # App temp files, /var/tmp/#{ext_name}
   ],
   runtime_directory_preserve: "yes",
+  env_files: [
+    ["!", :deploy_dir, "/etc/environment"],
+    ["!", :configuration_dir, "/environment"],
+  ]
   env_vars: [
-    {"RELEASE_TMP", :runtime_dir},
+    ["RELEASE_TMP=", :runtime_dir],
   ]
 ```
 
@@ -218,30 +224,31 @@ You can set additional vars using `env_vars`, e.g.:
 
 ```elixir
 env_vars: [
-    "PORT=8080",
+  "PORT=8080",
 ]
 ```
 You can also reference the value of other parameters by name, e.g.:
 
 ```elixir
 env_vars: [
-    {"RELEASE_TMP", :runtime_dir},
+  ["RELEASE_TMP=", :runtime_dir],
 ]
 ```
 
-The unit file reads environment vars from a series of files:
+You can read environment vars from files with `env_files`:
 
-* `etc/environment` within the release, e.g. `/srv/app/current/etc/environment`
-* `#{deploy_dir}/etc/environment`, e.g. `/srv/app/etc/environment`
-* `#{configuration_dir}/environment`, e.g. `/etc/app/environment`
-* `#{runtime_dir}/environment`, e.g. `/run/app/environment`
+```elixir
+env_files: [
+  ["-", :configuration_dir, "environment"],
+],
+```
 
-These files are optional, the system will start without them. Later values
-override earlier values, so you can set defaults in the release which get
+The "-" at the beginnning makes the file optional, the system will start without them.
+Later values override earlier values, so you can set defaults in the release which get
 overridden in the deployment or runtime environment.
 
-`etc/environment` in the release is only enabled when using Distillery. You can
-set the files with an overlay in `rel/config.exs`, e.g.:
+With Distillery, you can generate a file under the release with an overlay in
+`rel/config.exs`, e.g.:
 
 ```elixir
 environment :prod do
@@ -252,6 +259,36 @@ environment :prod do
   ]
 end
 ```
+
+That results in a file that would be read by:
+
+```elixir
+env_files: [
+  ["-", :current_dir, "/etc/environment"],
+],
+```
+
+## Variable expansion
+
+The following variables support variable expansion:
+
+```elixir
+expand_keys: [
+  :env_files,
+  :env_vars,
+  :runtime_environment_service_script,
+  :exec_start_pre,
+  :exec_start_wrap,
+  :read_write_paths,
+  :read_only_paths,
+  :inaccessible_paths,
+]
+```
+
+You can specify values as a list of terms, and it will look up atoms as keys in
+the config. This lets you reference e.g. the deploy dir or configuration dir without
+having to specify the full path, e.g. `["!", :deploy_dir, "/bin/myscript"]` gets
+converted to `"!/srv/foo/bin/myscript"`.
 
 ## Runtime dirs
 
@@ -400,7 +437,7 @@ run before the main `ExecStart` script runs, e.g.:
 
 ```elixir
 exec_start_pre: [
-"!/srv/foo/bin/deploy-sync-config-s3"
+  "!/srv/foo/bin/deploy-sync-config-s3"
 ]
 ```
 
@@ -442,7 +479,7 @@ set:
 
 ```elixir
 unit_after_targets: [
-    "cloud-init.target"
+  "cloud-init.target"
 ]
 ```
 
