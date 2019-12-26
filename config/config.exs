@@ -20,33 +20,26 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
-# config :mix_systemd,
-#   runtime_environment_wrap: true,
-#   env_vars: [
-#     "REPLACE_OS_VARS=true",
-#   ]
-#
-# config :mix_systemd,
-#   runtime_environment_service: true,
-#   env_vars: [
-#     "REPLACE_OS_VARS=true",
-#   ]
-#
-# config :mix_systemd,
-#   # Enable restart from flag file
-#   restart_flag: true,
-#   # Enable chroot
-#   chroot: true,
-#   # Enable extra restrictions
-#   paranoia: true,
-#   dirs: [
-#     :runtime, # for runtime environment
-#     # :configuration, # for app config files
-#     # :logs, # for external log file, not journald
-#     # :cache, # for app cache files which can be deleted
-#     # :state, # for app state persisted between runs
-#     # :tmp, # for app temp files
-#   ]
+
+config :mix_systemd,
+  app_user: "app",
+  app_group: "app",
+  exec_start_pre: [
+    "!/srv/app/bin/deploy-sync-config-s3"
+  ],
+  dirs: [
+    :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
+    :configuration, # App configuration, e.g. db passwords, /etc/#{ext_name}
+    # :state,         # App data or state persisted between runs, /var/lib/#{ext_name}
+    # :cache,         # App cache files which can be deleted, /var/cache/#{ext_name}
+    # :logs,          # App external log files, not via journald, /var/log/#{ext_name}
+    # :tmp,           # App temp files, /var/tmp/#{ext_name}
+  ],
+  runtime_directory_preserve: "yes",
+  env_vars: [
+    "PORT=8080",
+    {"RELEASE_TMP", :runtime_dir},
+  ]
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

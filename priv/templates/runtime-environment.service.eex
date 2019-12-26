@@ -10,9 +10,7 @@ ExecStart=<%= scripts_dir %>/<%= runtime_environment_service_script %>
 <%= if :runtime in dirs do %>
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
-<%= if systemd_version >= 235 do %>
-RuntimeDirectoryPreserve=<%= runtime_directory_preserve %>
-<% end %>
+<%= if systemd_version >= 235 do %>RuntimeDirectoryPreserve=<%= runtime_directory_preserve %><% end %>
 <% end %>
 <%= for env <- env_vars do %>
 Environment=<%= env %>

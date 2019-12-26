@@ -20,8 +20,6 @@ and standard options support more specialized use cases.
 While it can be used standalone, more advanced use cases use scripts
 from e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
 
-Here is [a complete example app which uses mix_deploy](https://github.com/cogini/mix-deploy-example).
-
 ## Installation
 
 Add `mix_systemd` to `deps` in `mix.exs`:
@@ -31,6 +29,9 @@ Add `mix_systemd` to `deps` in `mix.exs`:
 ```
 
 ## Configuration
+
+The library tries to choose smart defaults, so you may not need to configure
+anything.
 
 The library reads the app name from `mix.exs` and calculates default values
 for its configuration parameters. For example, if your app is nomed `foo_bar`,
@@ -45,12 +46,42 @@ config :mix_systemd,
     app_group: "app",
     base_dir: "/opt",
     env_vars: [
-        "PORT=4000",
+        "PORT=8080",
     ]
 ```
 
-The library tries to choose smart defaults, so you may not need to configure
-anything. See below for options.
+Following is a more secure config which deploys the app using a
+different user account from what the app runs under, so the
+release source dirs are readonly to the app. It runs a script on startup which
+pulls app config from S3 in TOML format, putting it in the `/etc/app` dir. It
+uses a
+[config provider](https://hexdocs.pm/elixir/Config.Provider.html) to load files
+in [TOML](https://hexdocs.pm/toml_config/readme.html), which needs to write
+a temp file to `/run/app`. It sets `runtime_directory_preserve` to `yes`
+to help in debugging startup issues.
+
+```elixir
+config :mix_systemd,
+  app_user: "app",
+  app_group: "app",
+  exec_start_pre: [
+    "!/srv/app/bin/deploy-sync-config-s3"
+  ],
+  dirs: [
+    :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
+    :configuration, # App configuration, e.g. db passwords, /etc/#{ext_name}
+    # :state,         # App data or state persisted between runs, /var/lib/#{ext_name}
+    # :cache,         # App cache files which can be deleted, /var/cache/#{ext_name}
+    # :logs,          # App external log files, not via journald, /var/log/#{ext_name}
+    # :tmp,           # App temp files, /var/tmp/#{ext_name}
+  ],
+  runtime_directory_preserve: "yes",
+  env_vars: [
+    {"RELEASE_TMP", :runtime_dir},
+  ]
+```
+
+Here is [a complete example app which uses mix_deploy](https://github.com/cogini/mix-deploy-example).
 
 ## Usage
 
@@ -291,11 +322,11 @@ default 65535.
 
 `umask`: Process umask, systemd
 [UMask](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=),
-default "0027"
+default "0027". Note that this is octal, so it needs to be a string.
 
-`restart_sec`: Time to wait between restarts, systemd
+`restart_sec`: Time in seconds to wait between restarts, systemd
 [RestartSec](https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=),
-default 1 sec.
+default 100ms.
 
 `syslog_identifier`: Logging name, systemd
 [SyslogIdentifier](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#SyslogIdentifier=),
