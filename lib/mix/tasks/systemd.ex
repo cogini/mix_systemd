@@ -72,8 +72,8 @@ defmodule Mix.Tasks.Systemd do
       systemd_version: 235,
 
       dirs: [
-        :runtime,         # RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime environment
-        :configuration,   # Config files, Erlang cookie
+        # :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
+        # :configuration, # Config files, Erlang cookie
         # :logs,          # External log file, not journald
         # :cache,         # App cache files which can be deleted
         # :state,         # App state persisted between runs
@@ -83,12 +83,11 @@ defmodule Mix.Tasks.Systemd do
       # Standard directory locations for under systemd for various purposes.
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
       #
-      # Recent versions of systemd will create directories if they don't exist
-      # if they are specified in the unit file.
+      # Recent versions of systemd (since 235) will create directories if they
+      # don't exist if they are configured in the unit file.
       #
-      # For security, we default to modes which are tighter than the systemd
-      # default of 755.
-      # Note that these are strings, not integers.
+      # For security, modes are tighter than the systemd default of 755.
+      # Note that these are strings, not integers, as they are actually octal.
       cache_directory: service_name,
       cache_directory_base: "/var/cache",
       cache_directory_mode: "750",
@@ -101,7 +100,9 @@ defmodule Mix.Tasks.Systemd do
       runtime_directory: service_name,
       runtime_directory_base: "/run",
       runtime_directory_mode: "750",
-      runtime_directory_preserve: "no",
+      # Whether to preserve the runtime dir on app restart
+      # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectoryPreserve=
+      runtime_directory_preserve: "no", # "no" | "yes" | "restart"
       state_directory: service_name,
       state_directory_base: "/var/lib",
       state_directory_mode: "750",
@@ -109,10 +110,11 @@ defmodule Mix.Tasks.Systemd do
       tmp_directory_base: "/var/tmp",
       tmp_directory_mode: "750",
 
-      # Mix releases in Elixir 1.9+ or Distillery
+      # Elixir 1.9+ mix releases or Distillery
       release_system: :mix, # :mix | :distillery
 
       # Service start type
+      # https://www.freedesktop.org/software/systemd/man/systemd.service.html#Type=
       service_type: :simple, # :simple | :exec | :notify | :forking
 
       # How service is restarted on update
@@ -147,11 +149,20 @@ defmodule Mix.Tasks.Systemd do
       runtime_environment_service_script: nil,
 
       # ExecStartPre commands to run before ExecStart
+      # https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStartPre=
       exec_start_pre: [],
 
-      # time to sleep before restarting a service, RestartSec
+      # Whether the service shall be restarted when the service process exits, is killed, or times out
+      # https://www.freedesktop.org/software/systemd/man/systemd.service.html#Restart=
+      restart: "always",
+
+      # Time to sleep before restarting a service
       # https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=
-      restart_sec: 1,
+      restart_sec: nil,
+
+      # Time to wait for start-up
+      # https://www.freedesktop.org/software/systemd/man/systemd.service.html#TimeoutStartSec=
+      timeout_start_sec: nil,
 
       # Wrapper script for ExecStart
       exec_start_wrap: nil,
@@ -185,7 +196,7 @@ defmodule Mix.Tasks.Systemd do
       current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
 
       start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
-      exec_start_wrap: exec_start_wrap(cfg[:exec_start_wrap]),
+      exec_start_wrap: ensure_trailing_space(cfg[:exec_start_wrap]),
       unit_after_targets: if cfg[:runtime_environment_service_script] do
         cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
       else
@@ -227,10 +238,10 @@ defmodule Mix.Tasks.Systemd do
   def start_command(type, :distillery) when type in [:simple, :exec, :notify], do: "foreground"
 
   @doc "Make sure that script name has a space afterwards"
-  @spec exec_start_wrap(nil | binary) :: binary
-  def exec_start_wrap(nil), do: ""
-  def exec_start_wrap(script) do
-    if String.ends_with?(script, " "), do: script, else: script <> " "
+  @spec ensure_trailing_space(nil | binary) :: binary
+  def ensure_trailing_space(nil), do: ""
+  def ensure_trailing_space(value) do
+    if String.ends_with?(value, " "), do: value, else: value <> " "
   end
 
   @doc "Expand symbolic vars in env vars"

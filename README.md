@@ -105,27 +105,28 @@ for modern Linux systems. App files under `/srv`, configuration under
 `/etc`, transient files under `/run`, data under `/var/lib`.
 
 Directories are named based on the app name, e.g. `/etc/#{ext_name}`.
-The `dirs` variable specifies which directories the app uses, by default:
+The `dirs` variable specifies which directories the app uses.
+By default, it doesn't set up anything. To enable them, configure the `dirs`
+param, e.g.:
 
 ```elixir
 dirs: [
   :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
-                  # May be used for RELEASE_TMP, RELEASE_MUTABLE_DIR, runtime environment
   :configuration, # App configuration, e.g. db passwords, /etc/#{ext_name}
-  # :state,       # App data or state persisted between runs, /var/lib/#{ext_name}
-  # :cache,       # App cache files which can be deleted, /var/cache/#{ext_name}
-  # :logs,        # App external log files, not via journald, /var/log/#{ext_name}
-  # :tmp,         # App temp files, /var/tmp/#{ext_name}
+  # :state,         # App data or state persisted between runs, /var/lib/#{ext_name}
+  # :cache,         # App cache files which can be deleted, /var/cache/#{ext_name}
+  # :logs,          # App external log files, not via journald, /var/log/#{ext_name}
+  # :tmp,           # App temp files, /var/tmp/#{ext_name}
 ],
 ```
 
-Recent versions of systemd (after 235) will create these directories at
+Recent versions of systemd (since 235) will create these directories at
 start time based on the settings in the unit file. With earlier systemd
 versions, create them beforehand using installation scripts, e.g.
 [mix_deploy](https://github.com/cogini/mix_deploy).
 
 For security, we set permissions more restrictively than the systemd defaults.
-You can configure them by setting varialbles such as `configuration_directory_mode`.
+You can configure them by setting variables such as `configuration_directory_mode`.
 See the defaults in `lib/mix/tasks/systemd.ex`.
 
 `systemd_version`: Sets the systemd version on the target system, default 235.
@@ -252,7 +253,8 @@ You can also set `RELEASE_TMP/RELEASE_MUTABLE_DIR` to `/tmp` or the application
 
 The following variables set systemd variables:
 
-`service_type`: `:simple | :exec | :notify | :forking`. Default `:simple`.
+`service_type`: `:simple | :exec | :notify | :forking`. systemd
+[Type](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Type=), default `:simple`.
 
 Modern applications don't fork, they run in the foreground and
 rely on the supervisor to manage them as a daemon. This is done by setting
@@ -361,8 +363,9 @@ This library supports three ways to get runtime config:
 
 #### `ExecStartPre` scripts
 
-Scripts specified in `exec_start_pre` run before the main `ExecStart` script
-runs, e.g.:
+Scripts specified in `exec_start_pre` (systemd
+[ExecStartPre](https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStartPre=)])
+run before the main `ExecStart` script runs, e.g.:
 
 ```elixir
 exec_start_pre: [
@@ -375,10 +378,10 @@ copies config files from an S3 bucket into `/etc/foo`. By default,
 scripts run as the same user and group as the main script. Putting
 `!` in front makes the script run with
 [elevated privileges](https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStart=),
-allowing it to write to `/etc/foo` even if the main script cannot for security reasons.
+allowing it to write config to `/etc/foo` even if the main user account cannot for security reasons.
 
 In Elixir 1.9+ releases you can use `rel/env.sh.eex`, but this runs earlier
-with elevated permissions, so it may be useful as well.
+with elevated permissions, so it is useful as well.
 
 #### ExecStart wrapper script
 

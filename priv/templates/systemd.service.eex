@@ -41,8 +41,9 @@ PIDFile=<%= pid_file %>
 LimitNOFILE=<%= limit_nofile %>
 UMask=<%= umask %>
 SyslogIdentifier=<%= syslog_identifier %>
-Restart=always
-RestartSec=<%= restart_sec %>
+Restart=<% restart %>
+<%= if restart_sec do %>RestartSec=<%= restart_sec %><% end %>
+<%= if timout_start_sec do %>TimeoutStartSec=<%= timeout_start_sec %><% end %>
 # PermissionsStartOnly=true
 <%= if :runtime in dirs do %>
 RuntimeDirectory=<%= runtime_directory %>
