@@ -200,7 +200,7 @@ defmodule Mix.Tasks.Systemd do
         :read_write_paths,
         :read_only_paths,
         :inaccessible_paths,
-      ]
+      ],
 
       # Add your keys here
       expand_keys_extra: []
