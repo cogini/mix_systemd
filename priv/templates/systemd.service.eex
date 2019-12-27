@@ -41,7 +41,6 @@ SyslogIdentifier=<%= syslog_identifier %>
 Restart=<%= restart %>
 <%= if restart_sec do %>RestartSec=<%= restart_sec %><% end %>
 <%= if timeout_start_sec do %>TimeoutStartSec=<%= timeout_start_sec %><% end %>
-# PermissionsStartOnly=true
 <%= if :runtime in dirs do %>
 RuntimeDirectory=<%= runtime_directory %>
 RuntimeDirectoryMode=<%= runtime_directory_mode %>
