@@ -239,7 +239,9 @@ You can read environment vars from files with `env_files`:
 
 ```elixir
 env_files: [
+  ["-", :deploy_dir, "/etc/environment"],
   ["-", :configuration_dir, "environment"],
+  ["-", :runtime_dir, "environment"],
 ],
 ```
 

@@ -143,7 +143,7 @@ defmodule Mix.Tasks.Systemd do
       # The "-" at the beginning means that the file is optional
       env_files: [
         # ["-", :deploy_dir, "/etc/environment"],
-        ["-", :configuration_dir, "/environment"],
+        # ["-", :configuration_dir, "/environment"],
       ],
 
       # Misc env vars to set, e.g.
