@@ -140,18 +140,16 @@ defmodule Mix.Tasks.Systemd do
       umask: "0027",
 
       # env files to read, e.g.
-      # env_files: [
-      #   ["-", :configuration_dir, "environment"],
-      # ],
       # The "-" at the beginning means that the file is optional
       env_files: [
-        ["-", :configuration_dir],
+        # ["-", :deploy_dir, "/etc/environment"],
+        ["-", :configuration_dir, "/environment"],
       ],
 
       # Misc env vars to set, e.g.
       # env_vars: [
       #  "REPLACE_OS_VARS=true",
-      #  ["RELEASE_MUTABLE_DIR", :runtime_dir]
+      #  ["RELEASE_MUTABLE_DIR=", :runtime_dir]
       # ]
       env_vars: [],
 
@@ -192,6 +190,7 @@ defmodule Mix.Tasks.Systemd do
       # Enable extra restrictions
       paranoia: false,
 
+      # Config keys which have variable expansion
       expand_keys: [
         :env_files,
         :env_vars,
@@ -202,6 +201,9 @@ defmodule Mix.Tasks.Systemd do
         :read_only_paths,
         :inaccessible_paths,
       ]
+
+      # Add your keys here
+      expand_keys_extra: []
     ]
 
     # Override values from user config
@@ -216,14 +218,6 @@ defmodule Mix.Tasks.Systemd do
       flags_dir: cfg[:flags_dir] || Path.join(cfg[:deploy_dir], "flags"),
       current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
 
-      start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
-      exec_start_wrap: ensure_trailing_space(cfg[:exec_start_wrap]),
-      unit_after_targets: if cfg[:runtime_environment_service_script] do
-        cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
-      else
-        cfg[:unit_after_targets]
-      end,
-
       runtime_dir: cfg[:runtime_dir] || Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
       configuration_dir: cfg[:configuration_dir] || Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
       logs_dir: cfg[:logs_dir] || Path.join(cfg[:logs_directory_base], cfg[:logs_directory]),
@@ -231,10 +225,19 @@ defmodule Mix.Tasks.Systemd do
       state_dir: cfg[:state_dir] || Path.join(cfg[:state_directory_base], cfg[:state_directory]),
       cache_dir: cfg[:cache_dir] || Path.join(cfg[:cache_directory_base], cfg[:cache_directory]),
 
+      # Loation of pid file when running as a daemon
       pid_file: cfg[:pid_file] || Path.join([cfg[:runtime_directory_base], cfg[:runtime_directory], "#{app_name}.pid"]),
 
-      # Chroot config
+      # Chroot dir
       root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
+
+      start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
+      exec_start_wrap: ensure_trailing_space(cfg[:exec_start_wrap]),
+      unit_after_targets: if cfg[:runtime_environment_service_script] do
+        cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
+      else
+        cfg[:unit_after_targets]
+      end,
     ], cfg)
 
     # Set things based on values computed above
@@ -242,7 +245,7 @@ defmodule Mix.Tasks.Systemd do
       working_dir: cfg[:working_dir] || cfg[:current_dir],
     ], cfg)
 
-    expand_keys(cfg, cfg[:expand_keys])
+    expand_keys(cfg, cfg[:expand_keys] ++ cfg[:expand_keys_extra])
 
     # Mix.shell.info "cfg: #{inspect cfg}"
   end
