@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Systemd do
   # Directory where `mix systemd.init` copies templates in user project
   @template_dir "rel/templates/systemd"
 
+  # Generate cfg from mix.exs and app config
   @spec parse_args(OptionParser.argv()) :: Keyword.t
   def parse_args(argv) do
     opts = [strict: [version: :string]]
@@ -139,21 +140,28 @@ defmodule Mix.Tasks.Systemd do
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=
       umask: "0027",
 
+      # Environment files to read, e.g.
       # env files to read, e.g.
       # The "-" at the beginning means that the file is optional
       env_files: [
-        # ["-", :deploy_dir, "/etc/environment"],
         # ["-", :configuration_dir, "/environment"],
+        # ["-", :deploy_dir, "/etc/environment"],
       ],
 
-      # Misc env vars to set, e.g.
-      # env_vars: [
-      #  "REPLACE_OS_VARS=true",
-      #  ["RELEASE_MUTABLE_DIR=", :runtime_dir]
-      # ]
-      env_vars: [],
+      # Misc env vars to set
+      env_vars: [
+        #  PORT=8080
 
-      # Script to run in runtime environment service
+        #  Use runtime dir for tmp files
+        #  ["RELEASE_TMP=", :runtime_dir]
+
+        #  Distillery
+        #  Use runtime dir for tmp and startup log
+        #  ["RELEASE_MUTABLE_DIR=", :runtime_dir]
+        #  "REPLACE_OS_VARS=true",
+      ],
+
+      # Script run by envronment config systemd unit
       runtime_environment_service_script: nil,
 
       # ExecStartPre commands to run before ExecStart
@@ -245,12 +253,13 @@ defmodule Mix.Tasks.Systemd do
       working_dir: cfg[:working_dir] || cfg[:current_dir],
     ], cfg)
 
-    expand_keys(cfg, cfg[:expand_keys] ++ cfg[:expand_keys_extra])
-
     # Mix.shell.info "cfg: #{inspect cfg}"
+
+    expand_keys(cfg, cfg[:expand_keys] ++ cfg[:expand_keys_extra])
   end
 
-  @doc "Set start comand based on systemd service type and release system"
+  # Set start comand based on systemd service type and release system
+  @doc false
   @spec start_command(atom, atom) :: binary
   def start_command(service_type, release_system)
   # https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-daemon-mode-unix-like
@@ -260,14 +269,16 @@ defmodule Mix.Tasks.Systemd do
   def start_command(:forking, :distillery), do: "start"
   def start_command(type, :distillery) when type in [:simple, :exec, :notify], do: "foreground"
 
-  @doc "Make sure that script name has a space afterwards"
+  # Make sure that script name has a trailing space if defined
+  @doc false
   @spec ensure_trailing_space(nil | binary) :: binary
   def ensure_trailing_space(nil), do: ""
   def ensure_trailing_space(value) do
     if String.ends_with?(value, " "), do: value, else: value <> " "
   end
 
-  @doc "Expand cfg vars in keys"
+  # Expand cfg vars in keys
+  @doc false
   @spec expand_keys(Keyword.t, list(atom)) :: Keyword.t
   def expand_keys(cfg, keys) do
     Enum.reduce(Keyword.take(cfg, keys), cfg,
@@ -276,14 +287,16 @@ defmodule Mix.Tasks.Systemd do
       end)
   end
 
-  @doc "Expand vars in value or list of values"
+  # Expand vars in value or list of values
+  @doc false
   @spec expand_value(term, Keyword.t) :: binary
   def expand_value(values, cfg) when is_list(values) do
     Enum.map(values, &expand_vars(&1, cfg))
   end
   def expand_value(value, cfg), do: expand_vars(value, cfg)
 
-  @doc "Expand references in values"
+  # Expand references in values
+  @doc false
   @spec expand_vars(term, Keyword.t) :: binary
   def expand_vars(value, _cfg) when is_binary(value), do: value
   def expand_vars(nil, _cfg), do: ""
@@ -322,7 +335,7 @@ defmodule Mix.Tasks.Systemd.Init do
 
   @app :mix_systemd
 
-  @spec run(OptionParser.argv()) :: no_return
+  @impl Mix.Task
   def run(args) do
     cfg = Mix.Tasks.Systemd.parse_args(args)
 
@@ -332,7 +345,6 @@ defmodule Mix.Tasks.Systemd.Init do
     :ok = File.mkdir_p(template_dir)
     {:ok, _files} = File.cp_r(app_dir, template_dir)
   end
-
 end
 
 defmodule Mix.Tasks.Systemd.Generate do
@@ -349,13 +361,8 @@ defmodule Mix.Tasks.Systemd.Generate do
 
   alias MixSystemd.Templates
 
-  @spec run(OptionParser.argv()) :: no_return
+  @impl Mix.Task
   def run(args) do
-    # Parse options
-    # opts = parse_args(args)
-    # verbosity = Keyword.get(opts, :verbosity)
-    # Shell.configure(verbosity)
-
     cfg = Mix.Tasks.Systemd.parse_args(args)
 
     dest_dir = Path.join([cfg[:output_dir], "/lib/systemd/system"])
@@ -371,7 +378,6 @@ defmodule Mix.Tasks.Systemd.Generate do
     if cfg[:runtime_environment_service] do
       write_template(cfg, dest_dir, "runtime-environment.service", "#{service_name}-runtime-environment.service")
     end
-
   end
 
   defp write_template(cfg, dest_dir, template, file) do
