@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Systemd do
+  @moduledoc false
+
   # Directory where `mix systemd.generate` stores output files,
   # e.g. _build/prod/systemd
   @output_dir "systemd"
@@ -6,15 +8,23 @@ defmodule Mix.Tasks.Systemd do
   # Directory where `mix systemd.init` copies templates in user project
   @template_dir "rel/templates/systemd"
 
-  # Generate cfg from mix.exs and app config
+  @app :mix_systemd
+
+  @doc "Generate cfg from mix.exs and app config"
   @spec parse_args(OptionParser.argv()) :: Keyword.t
   def parse_args(argv) do
     opts = [strict: [version: :string]]
     {overrides, _} = OptionParser.parse!(argv, opts)
 
-    user_config = Application.get_all_env(:mix_systemd)
+    user_config = Application.get_all_env(@app) |> Keyword.merge(overrides)
     mix_config = Mix.Project.config()
 
+    create_config(mix_config, user_config)
+  end
+
+  @doc "Generate cfg based on params"
+  @spec create_config(Keyword.t, Keyword.t) :: Keyword.t
+  def create_config(mix_config, user_config) do
     # Elixir app name, from mix.exs
     app_name = mix_config[:app]
 
@@ -215,9 +225,7 @@ defmodule Mix.Tasks.Systemd do
     ]
 
     # Override values from user config
-    cfg = defaults
-          |> Keyword.merge(user_config)
-          |> Keyword.merge(overrides)
+    cfg = Keyword.merge(defaults, user_config)
 
     # Calcualate values from other things
     cfg = Keyword.merge([
@@ -253,7 +261,9 @@ defmodule Mix.Tasks.Systemd do
       working_dir: cfg[:working_dir] || cfg[:current_dir],
     ], cfg)
 
-    # Mix.shell.info "cfg: #{inspect cfg}"
+    # for {key, value} <- cfg do
+    #   Mix.shell.info "cfg: #{key} #{inspect value}"
+    # end
 
     expand_keys(cfg, cfg[:expand_keys] ++ cfg[:expand_keys_extra])
   end
@@ -314,7 +324,6 @@ defmodule Mix.Tasks.Systemd do
     |> Enum.join("")
   end
   def expand_vars(value, _cfg), do: to_string(value)
-
 end
 
 defmodule Mix.Tasks.Systemd.Init do
@@ -353,7 +362,7 @@ defmodule Mix.Tasks.Systemd.Generate do
 
   ## Usage
 
-      # Create unit files for prod
+      # Create unit files
       MIX_ENV=prod mix systemd.generate
   """
   @shortdoc "Create systemd unit file"
