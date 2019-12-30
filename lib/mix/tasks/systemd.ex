@@ -299,7 +299,7 @@ defmodule Mix.Tasks.Systemd do
 
   # Expand vars in value or list of values
   @doc false
-  @spec expand_value(term, Keyword.t) :: binary
+  @spec expand_value(atom | binary | list, Keyword.t) :: binary | list(binary)
   def expand_value(values, cfg) when is_list(values) do
     Enum.map(values, &expand_vars(&1, cfg))
   end
@@ -307,7 +307,7 @@ defmodule Mix.Tasks.Systemd do
 
   # Expand references in values
   @doc false
-  @spec expand_vars(term, Keyword.t) :: binary
+  @spec expand_vars(binary | nil | atom | list, Keyword.t) :: binary
   def expand_vars(value, _cfg) when is_binary(value), do: value
   def expand_vars(nil, _cfg), do: ""
   def expand_vars(key, cfg) when is_atom(key) do

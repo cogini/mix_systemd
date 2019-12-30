@@ -30,13 +30,11 @@ end
 
 ## Configuration
 
-The library tries to choose smart defaults, so you may not need to configure
-anything.
-
-The library reads the app name from `mix.exs` and calculates default values
-for its configuration parameters. For example, if your app is named `foo_bar`,
-it will create a service named `foo-bar`, deployed to `/srv/foo-bar`, running
-under the user `foo-bar`.
+The library tries to choose reasonable defaults, so you may not need to
+configure anything. It reads the app name from `mix.exs` and calculates default
+values for its configuration parameters. For example, if your app is named
+`foo_bar`, it will create a service named `foo-bar`, deployed to
+`/srv/foo-bar`, running under the user `foo-bar`.
 
 You can override these parameters using settings in `config/config.exs`, e.g.:
 
