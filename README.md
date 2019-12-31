@@ -194,7 +194,7 @@ config.
 ```elixir
 defp releases do
    [
-     foo: [
+     prod: [
        include_executables_for: [:unix],
        config_providers: [
          {TomlConfigProvider, path: "/etc/foo/config.toml"}
@@ -244,7 +244,7 @@ aws --region us-east-1 ssm get-parameters-by-path --path "/foo/prod/" --recursiv
 ```elixir
 defp releases do
    [
-     foo: [
+     prod: [
        include_executables_for: [:unix],
        config_providers: [
          {AwsSsmProvider, path: "/etc/foo/ssm.json"}
