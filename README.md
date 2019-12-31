@@ -178,7 +178,18 @@ safely and convert them back to lists, integers or atoms.
 
 [Config providers](https://hexdocs.pm/elixir/Config.Provider.html) let you load
 files in standard formats like [TOML](https://hexdocs.pm/toml_config/readme.html).
-The app reads these config files on startup and merges them into the app config.
+
+```toml
+[foo."Foo.Repo"]
+url = "ecto://foo_prod:Sekrit!@db.foo.local/foo_prod"
+pool_size = 15
+
+[foo."FooWeb.Endpoint"]
+secret_key_base = "EOdJB1T39E5Cdeebyc8naNrOO4HBoyfdzkDy2I8Cxiq4mLvIQ/0tK12AK1ahrV4y"
+```
+
+The app reads these config files on startup and merges them into the app
+config.
 
 ```elixir
 defp releases do
@@ -197,7 +208,8 @@ defp releases do
 The startup scripts read the initial application environment compiled into the
 release, parse the config file, merge the values, write it to a temp file then
 start the VM. Because of that, they need a writable directory.  That is
-configured using the `RELEASE_TMP` environment var, normally set to the app's `runtime_dir`.
+configured using the `RELEASE_TMP` environment var, normally set to the app's
+`runtime_dir`.
 
 ```elixir
 dirs: [
