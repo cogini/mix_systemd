@@ -68,7 +68,7 @@ There are four different kinds of things that we may want to configure:
 
 Elixir has a couple of mechanisms for storing configuration. When you compile
 the release, it converts Elixir-format config files like `config/config.exs`
-into an initial application environment that is read by `Appliction.get_env/3`.
+into an initial application environment that is read by `Application.get_env/3`.
 That's good for simple, relatively static apps. It's not ideal to store
 passwords in the release file, though.
 
@@ -286,7 +286,6 @@ If an attacker manages to compromise the app, then they can do whatever it has
 permissions to do, not just what you expect. Because of that, I prefer that the
 account that the app runs under cannot write files, and having a writable
 config file that is also executed is the worst case scenario.
-
 
 ## Usage
 
@@ -653,7 +652,9 @@ config :mix_systemd,
   ]
 ```
 
-Configure providers in `rel/config.exs`:
+Set up
+[config providers](https://hexdocs.pm/distillery/Mix.Releases.Config.Providers.Elixir.html)
+in `rel/config.exs`:
 
 ```elixir
 environment :prod do
@@ -662,7 +663,12 @@ environment :prod do
   ]
 end
 ```
-or
+
+This reads files in Elixir config format. Instead of including your
+`prod.secret.exs` file in `prod.exs`, you can copy it to the server separately,
+and it will be read at startup.
+
+The [TOML configuration provider](https://github.com/bitwalker/toml-elixir) works similarly:
 
 ```elixir
 environment :prod do
