@@ -26,7 +26,7 @@ Add `mix_systemd` to the list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:mix_systemd, "~> 0.7.0"},
+    {:mix_systemd, "~> 0.7"},
   ]
 end
 ```
@@ -434,7 +434,7 @@ converted to `"!/srv/foo/bin/myscript"`.
 The library sets env vars in the unit file:
 
 * `MIX_ENV`: `mix_env`, default `Mix.env()`
-* `LANG`: `env_lang`, default `en_US.UTF-8`
+* `LANG`: `env_lang`, default `en_US.utf8
 
 * `RUNTIME_DIR`: `runtime_dir`, if `:runtime` in `dirs`
 * `CONFIGURATION_DIR`: `configuration_dir`, if `:configuration` in `dirs`
