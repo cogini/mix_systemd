@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Systemd do
   @app :mix_systemd
 
   @doc "Generate cfg from mix.exs and app config"
-  @spec parse_args(OptionParser.argv()) :: Keyword.t
+  @spec parse_args(OptionParser.argv()) :: Keyword.t()
   def parse_args(argv) do
     opts = [strict: [version: :string]]
     {overrides, _} = OptionParser.parse!(argv, opts)
@@ -23,25 +23,27 @@ defmodule Mix.Tasks.Systemd do
   end
 
   @doc "Generate cfg based on params"
-  @spec create_config(Keyword.t, Keyword.t) :: Keyword.t
+  @spec create_config(Keyword.t(), Keyword.t()) :: Keyword.t()
   def create_config(mix_config, user_config) do
     # Elixir app name, from mix.exs
     app_name = mix_config[:app]
 
     # External name, used for files and directories
-    ext_name = app_name
-               |> to_string
-               |> String.replace("_", "-")
+    ext_name =
+      app_name
+      |> to_string
+      |> String.replace("_", "-")
 
     # Name of systemd unit
     service_name = ext_name
 
     # Elixir camel case module name version of snake case app name
-    module_name = app_name
-                  |> to_string
-                  |> String.split("_")
-                  |> Enum.map(&String.capitalize/1)
-                  |> Enum.join("")
+    module_name =
+      app_name
+      |> to_string
+      |> String.split("_")
+      |> Enum.map(&String.capitalize/1)
+      |> Enum.join("")
 
     base_dir = user_config[:base_dir] || "/srv"
 
@@ -81,7 +83,6 @@ defmodule Mix.Tasks.Systemd do
       # systemd_version: 229, # Ubuntu 16.04
       # systemd_version: 237, # Ubuntu 18.04
       systemd_version: 235,
-
       dirs: [
         # :runtime,       # App runtime files which may be deleted between runs, /run/#{ext_name}
         # :configuration, # Config files, Erlang cookie
@@ -113,7 +114,8 @@ defmodule Mix.Tasks.Systemd do
       runtime_directory_mode: "750",
       # Whether to preserve the runtime dir on app restart
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectoryPreserve=
-      runtime_directory_preserve: "no", # "no" | "yes" | "restart"
+      # "no" | "yes" | "restart"
+      runtime_directory_preserve: "no",
       state_directory: service_name,
       state_directory_base: "/var/lib",
       state_directory_mode: "750",
@@ -122,14 +124,17 @@ defmodule Mix.Tasks.Systemd do
       tmp_directory_mode: "750",
 
       # Elixir 1.9+ mix releases or Distillery
-      release_system: :mix, # :mix | :distillery
+      # :mix | :distillery
+      release_system: :mix,
 
       # Service start type
       # https://www.freedesktop.org/software/systemd/man/systemd.service.html#Type=
-      service_type: :simple, # :simple | :exec | :notify | :forking
+      # :simple | :exec | :notify | :forking
+      service_type: :simple,
 
       # How service is restarted on update
-      restart_method: :systemctl, # :systemctl | :systemd_flag | :touch
+      # :systemctl | :systemd_flag | :touch
+      restart_method: :systemctl,
 
       # Mix build_path
       build_path: build_path,
@@ -139,7 +144,6 @@ defmodule Mix.Tasks.Systemd do
 
       # Directory with templates which override defaults
       template_dir: @template_dir,
-
       mix_env: Mix.env(),
 
       # LANG variable
@@ -220,7 +224,7 @@ defmodule Mix.Tasks.Systemd do
         :exec_start_wrap,
         :read_write_paths,
         :read_only_paths,
-        :inaccessible_paths,
+        :inaccessible_paths
       ],
 
       # Add your keys here
@@ -231,38 +235,53 @@ defmodule Mix.Tasks.Systemd do
     cfg = Keyword.merge(defaults, user_config)
 
     # Calcualate values from other things
-    cfg = Keyword.merge([
-      releases_dir: cfg[:releases_dir] || Path.join(cfg[:deploy_dir], "releases"),
-      scripts_dir: cfg[:scripts_dir] || Path.join(cfg[:deploy_dir], "bin"),
-      flags_dir: cfg[:flags_dir] || Path.join(cfg[:deploy_dir], "flags"),
-      current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
+    cfg =
+      Keyword.merge(
+        [
+          releases_dir: cfg[:releases_dir] || Path.join(cfg[:deploy_dir], "releases"),
+          scripts_dir: cfg[:scripts_dir] || Path.join(cfg[:deploy_dir], "bin"),
+          flags_dir: cfg[:flags_dir] || Path.join(cfg[:deploy_dir], "flags"),
+          current_dir: cfg[:current_dir] || Path.join(cfg[:deploy_dir], "current"),
+          runtime_dir:
+            cfg[:runtime_dir] || Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
+          configuration_dir:
+            cfg[:configuration_dir] ||
+              Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
+          logs_dir: cfg[:logs_dir] || Path.join(cfg[:logs_directory_base], cfg[:logs_directory]),
+          tmp_dir: cfg[:logs_dir] || Path.join(cfg[:tmp_directory_base], cfg[:tmp_directory]),
+          state_dir:
+            cfg[:state_dir] || Path.join(cfg[:state_directory_base], cfg[:state_directory]),
+          cache_dir:
+            cfg[:cache_dir] || Path.join(cfg[:cache_directory_base], cfg[:cache_directory]),
 
-      runtime_dir: cfg[:runtime_dir] || Path.join(cfg[:runtime_directory_base], cfg[:runtime_directory]),
-      configuration_dir: cfg[:configuration_dir] || Path.join(cfg[:configuration_directory_base], cfg[:configuration_directory]),
-      logs_dir: cfg[:logs_dir] || Path.join(cfg[:logs_directory_base], cfg[:logs_directory]),
-      tmp_dir: cfg[:logs_dir] || Path.join(cfg[:tmp_directory_base], cfg[:tmp_directory]),
-      state_dir: cfg[:state_dir] || Path.join(cfg[:state_directory_base], cfg[:state_directory]),
-      cache_dir: cfg[:cache_dir] || Path.join(cfg[:cache_directory_base], cfg[:cache_directory]),
+          # Loation of pid file when running as a daemon
+          pid_file:
+            cfg[:pid_file] ||
+              Path.join([cfg[:runtime_directory_base], cfg[:runtime_directory], "#{app_name}.pid"]),
 
-      # Loation of pid file when running as a daemon
-      pid_file: cfg[:pid_file] || Path.join([cfg[:runtime_directory_base], cfg[:runtime_directory], "#{app_name}.pid"]),
-
-      # Chroot dir
-      root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
-
-      start_command: cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
-      exec_start_wrap: ensure_trailing_space(cfg[:exec_start_wrap]),
-      unit_after_targets: if cfg[:runtime_environment_service_script] do
-        cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
-      else
-        cfg[:unit_after_targets]
-      end,
-    ], cfg)
+          # Chroot dir
+          root_directory: cfg[:root_directory] || Path.join(cfg[:deploy_dir], "current"),
+          start_command:
+            cfg[:start_command] || start_command(cfg[:service_type], cfg[:release_system]),
+          exec_start_wrap: ensure_trailing_space(cfg[:exec_start_wrap]),
+          unit_after_targets:
+            if cfg[:runtime_environment_service_script] do
+              cfg[:unit_after_targets] ++ ["#{cfg[:service_name]}-runtime-environment.service"]
+            else
+              cfg[:unit_after_targets]
+            end
+        ],
+        cfg
+      )
 
     # Set things based on values computed above
-    cfg = Keyword.merge([
-      working_dir: cfg[:working_dir] || cfg[:current_dir],
-    ], cfg)
+    cfg =
+      Keyword.merge(
+        [
+          working_dir: cfg[:working_dir] || cfg[:current_dir]
+        ],
+        cfg
+      )
 
     # for {key, value} <- cfg do
     #   Mix.shell.info "cfg: #{key} #{inspect value}"
@@ -286,46 +305,51 @@ defmodule Mix.Tasks.Systemd do
   @doc false
   @spec ensure_trailing_space(nil | binary) :: binary
   def ensure_trailing_space(nil), do: ""
+
   def ensure_trailing_space(value) do
     if String.ends_with?(value, " "), do: value, else: value <> " "
   end
 
   # Expand cfg vars in keys
   @doc false
-  @spec expand_keys(Keyword.t, list(atom)) :: Keyword.t
+  @spec expand_keys(Keyword.t(), list(atom)) :: Keyword.t()
   def expand_keys(cfg, keys) do
-    Enum.reduce(Keyword.take(cfg, keys), cfg,
-      fn({key, value}, acc) ->
-        Keyword.put(acc, key, expand_value(value, acc))
-      end)
+    Enum.reduce(Keyword.take(cfg, keys), cfg, fn {key, value}, acc ->
+      Keyword.put(acc, key, expand_value(value, acc))
+    end)
   end
 
   # Expand vars in value or list of values
   @doc false
-  @spec expand_value(atom | binary | list, Keyword.t) :: binary | list(binary)
+  @spec expand_value(atom | binary | list, Keyword.t()) :: binary | list(binary)
   def expand_value(values, cfg) when is_list(values) do
     Enum.map(values, &expand_vars(&1, cfg))
   end
+
   def expand_value(value, cfg), do: expand_vars(value, cfg)
 
   # Expand references in values
   @doc false
-  @spec expand_vars(binary | nil | atom | list, Keyword.t) :: binary
+  @spec expand_vars(binary | nil | atom | list, Keyword.t()) :: binary
   def expand_vars(value, _cfg) when is_binary(value), do: value
   def expand_vars(nil, _cfg), do: ""
+
   def expand_vars(key, cfg) when is_atom(key) do
     case Keyword.fetch(cfg, key) do
       {:ok, value} ->
         expand_vars(value, cfg)
+
       :error ->
         to_string(key)
     end
   end
+
   def expand_vars(terms, cfg) when is_list(terms) do
     terms
     |> Enum.map(&expand_vars(&1, cfg))
     |> Enum.join("")
   end
+
   def expand_vars(value, _cfg), do: to_string(value)
 end
 
@@ -388,7 +412,12 @@ defmodule Mix.Tasks.Systemd.Generate do
     end
 
     if cfg[:runtime_environment_service] do
-      write_template(cfg, dest_dir, "runtime-environment.service", "#{service_name}-runtime-environment.service")
+      write_template(
+        cfg,
+        dest_dir,
+        "runtime-environment.service",
+        "#{service_name}-runtime-environment.service"
+      )
     end
   end
 
