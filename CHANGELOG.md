@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2020-02-12
+### Added
+- Bring back `env_lang` variable to set `LANG` environment var
+- Default LANG to `en_US.utf8` for better compatibility
+- Update ex_doc 0.21.2 => 0.21.3
+
 ## [0.7.0] - 2020-01-01
 ### Added
 - Support Elixir 1.9 `mix release`
