@@ -36,7 +36,7 @@ defmodule MixSystemd.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.21.2", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.21.3", runtime: false}
       # {:dialyxir, "~> 0.5.1", only: [:dev, :test], runtime: false},
     ]
   end
