@@ -125,7 +125,6 @@ config :foo, FooWeb.Endpoint,
   static_url: [host: System.get_env("ASSETS_HOST"), port: 443],
   secret_key_base: System.get_env("SECRET_KEY_BASE"),
   cache_static_manifest: "priv/static/cache_manifest.json"
-
 ```
 
 ### Copying files
@@ -434,7 +433,7 @@ converted to `"!/srv/foo/bin/myscript"`.
 The library sets env vars in the unit file:
 
 * `MIX_ENV`: `mix_env`, default `Mix.env()`
-* `LANG`: `env_lang`, default `en_US.utf8
+* `LANG`: `env_lang`, default `en_US.utf8`
 
 * `RUNTIME_DIR`: `runtime_dir`, if `:runtime` in `dirs`
 * `CONFIGURATION_DIR`: `configuration_dir`, if `:configuration` in `dirs`
@@ -628,7 +627,7 @@ with the `read_write_paths`, `read_only_paths` and `inaccessible_paths` vars, re
 
 Distillery has largely been replaced by Elixir native releases.
 This library works fine with it, though. `exec_start_pre` scripts
-are particularly useful in the absense of `env.sh`.
+are particularly useful in the absence of `env.sh`.
 
 Configure the library by setting `release_system: :distillery`, e.g..
 
@@ -704,3 +703,9 @@ env_files: [
   ["-", :current_dir, "/etc/environment"],
 ],
 ```
+
+# Contacts
+
+I am `jakemorrison` on on the Elixir Slack and Discord, `reachfh` on
+Freenode `#elixir-lang` IRC channel. Happy to chat or help with
+your projects.
