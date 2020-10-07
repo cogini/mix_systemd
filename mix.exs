@@ -6,7 +6,7 @@ defmodule MixSystemd.MixProject do
   def project do
     [
       app: :mix_systemd,
-      version: "0.7.3",
+      version: "0.7.4",
       elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
@@ -29,7 +29,7 @@ defmodule MixSystemd.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :eex]
     ]
   end
 
