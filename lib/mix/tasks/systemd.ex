@@ -46,8 +46,10 @@ defmodule Mix.Tasks.Systemd do
       |> Enum.join("")
 
     base_dir = user_config[:base_dir] || "/srv"
-
     build_path = Mix.Project.build_path()
+
+    output_dir =
+      user_config[:output_dir] || Path.join([build_path, @output_dir, "/lib/systemd/system"])
 
     defaults = [
       # Elixir application name
@@ -140,7 +142,7 @@ defmodule Mix.Tasks.Systemd do
       build_path: build_path,
 
       # Staging output directory for generated files
-      output_dir: Path.join(build_path, @output_dir),
+      output_dir: output_dir,
 
       # Directory with templates which override defaults
       template_dir: @template_dir,
@@ -401,7 +403,7 @@ defmodule Mix.Tasks.Systemd.Generate do
   def run(args) do
     cfg = Mix.Tasks.Systemd.parse_args(args)
 
-    dest_dir = Path.join([cfg[:output_dir], "/lib/systemd/system"])
+    dest_dir = cfg[:output_dir]
     service_name = cfg[:service_name]
 
     write_template(cfg, dest_dir, "systemd.service", "#{service_name}.service")
