@@ -73,7 +73,7 @@ That's good for simple, relatively static apps. It's not ideal to store
 passwords in the release file, though.
 
 Elixir 1.9 releases support dynamic configuration at runtime. You can run the
-Elixir file `config/releases.exs` when it boots or use the shell script
+Elixir file `config/runtime.exs` when it boots or use the shell script
 `rel/env.sh.eex` to set environment vars. With these you can theoretically do
 anything. In practice, however, it can be more convenient and secure to process
 the config outside of the app. That's where `mix_systemd` and `mix_deploy` come
@@ -86,7 +86,7 @@ Beyond that, the configuration process depends on how complex things are.
 The simplest thing is to set environment variables. Add individual vars to
 `env_vars`, and they will be set in the systemd unit file. Add files to
 `env_files` and systemd will load them before starting your app.
-Your application then calls `System.get_env/1` in `config/releases.exs` or
+Your application then calls `System.get_env/1` in `config/runtime.exs` or
 application startup. Note that these environment vars are read at *runtime*,
 not when building your app.
 
@@ -113,7 +113,7 @@ env_files: [
     ASSETS_HOST="assets.example.com"
     RELEASE_COOKIE="LmCMGNz04yEJ4MQc6jt3cS7QjAppYOw_bQa7NE5hPZJGqL3Yry1jUg=="
 
-`config/releases.exs` looks like:
+`config/runtime.exs` looks like:
 
 ```elixir
 config :foo, Foo.Repo,
@@ -232,7 +232,7 @@ Set a parameter using the AWS CLI:
 aws ssm put-parameter --name '/foo/prod/db/password' --type ‘SecureString’ --value 'Sekrit!"
 ```
 
-While it's possible to read params in `config/releases.exs`, it's tedious.
+While it's possible to read params in `config/runtime.exs`, it's tedious.
 Better is to grab all of them at once and write them to a file, then read it in
 with a Config Provider like [aws_ssm_provider](https://github.com/caredox/aws_ssm_provider).
 
