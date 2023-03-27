@@ -113,7 +113,7 @@ env_files: [
     ASSETS_HOST="assets.example.com"
     RELEASE_COOKIE="LmCMGNz04yEJ4MQc6jt3cS7QjAppYOw_bQa7NE5hPZJGqL3Yry1jUg=="
 
-`config/runtime.exs` looks like:
+`config/runtime.exs` does something like the following (the default files are good):
 
 ```elixir
 config :foo, Foo.Repo,
@@ -131,9 +131,12 @@ config :foo, FooWeb.Endpoint,
 
 The question is how to get the environment files onto the server. For simple
 server deployments, we can copy the config to the server when doing the initial
-setup. In cloud environments, we may run from a read-only image, e.g. an
+setup. 
+
+
+In cloud environments, we may run from a read-only image, e.g. an
 Amazon AMI, which gets configured at start up based on the environment by
-copying the config from an S3 bucket.
+copying the config from an S3 bucket, e.g.:
 
 ```shell
 umask 077
@@ -159,7 +162,6 @@ config :mix_systemd,
     :configuration, # /etc/foo, app configuration, e.g. db passwords
     :runtime,       # /run/foo, temp files which may be deleted between runs
   ],
-  # runtime_directory_preserve: "yes", # don't delete dir for debugging
   env_files: [
     ["-", :deploy_dir, "/etc/environment"], # /srv/foo/etc/environment
   ]
@@ -205,8 +207,8 @@ defp releases do
 ```
 
 The startup scripts read the initial application environment compiled into the
-release, parse the config file, merge the values, write it to a temp file then
-start the VM. Because of that, they need a writable directory.  That is
+release, parse the config file, merge the values, write it to a temp file, then
+start the VM. Because of that, they need a writable directory. That is
 configured using the `RELEASE_TMP` environment var, normally set to the app's
 `runtime_dir`.
 
@@ -258,8 +260,8 @@ defp releases do
 
 You can write code to do things like query the system for the primary IP
 address, but `cloud-init`
-[already does it](https://cloudinit.readthedocs.io/en/latest/topics/instancedata.html),
-you just have to read the JSON file
+[already does it](https://cloudinit.readthedocs.io/en/latest/topics/instancedata.html).
+You just have to read the JSON file.
 
 The most common use for this is setting up the VM node name. In `env.sh`:
 
@@ -397,7 +399,7 @@ When using multiple releases and symlinks, the deployment process works as follo
 1. Create a new directory for the release with a timestamp like
    `/srv/foo/releases/20181114T072116`.
 
-2. Upload the new release tarball to the server and unpack it to the releases dir
+2. Upload the new release tarball to the server and unpack it to the releases dir.
 
 3. Make a symlink from `/srv/#{ext_name}/current` to the new release dir.
 
@@ -424,7 +426,7 @@ expand_keys: [
 ```
 
 You can specify values as a list of terms, and it will look up atoms as keys in
-the config. This lets you reference e.g. the deploy dir or configuration dir without
+the config. This lets you reference, e.g., the deploy dir or configuration dir without
 having to specify the full path, e.g. `["!", :deploy_dir, "/bin/myscript"]` gets
 converted to `"!/srv/foo/bin/myscript"`.
 
@@ -467,7 +469,7 @@ env_files: [
 ],
 ```
 
-The "-" at the beginning makes the file optional, the system will start without them.
+The "-" at the beginning makes the file optional; the system will start without it.
 Later values override earlier values, so you can set defaults in the release which get
 overridden in the deployment or runtime environment.
 
@@ -480,8 +482,8 @@ the release dir, e.g. `/srv/foo/current/tmp`.
 
 For security, it's better to deploy the app using a different user account from
 the one that the app runs under, making the source files read only. This makes
-it harder for an attacker to be able to make changes to the source and then
-make the app run them.
+it harder for an attacker to make changes to the source and then have the app
+run them.
 
 In that case, we need to set an environment var which tells the release
 startup scripts where they can write files. For Mix releases, that is
@@ -505,12 +507,11 @@ The following variables set systemd variables:
 `service_type`: `:simple | :exec | :notify | :forking`. systemd
 [Type](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Type=), default `:simple`.
 
-Modern applications don't fork, they run in the foreground and
-rely on the supervisor to manage them as a daemon. This is done by setting
-`service_type` to `:simple` or `:exec`. Note that in `simple` mode, systemd
-doesn't actually check if the app started successfully, it just continues
-starting other units. If something depends on your app being up, `:exec` may be
-better.
+Modern applications don't fork, they run in the foreground and rely on the
+supervisor to manage them as a daemon. This is done by setting `service_type`
+to `:simple` or `:exec`. Note that in `simple` mode, systemd doesn't actually
+check if the app started successfully, it just continues starting other units.
+If something depends on your app being up, `:exec` may be better.
 
 Set `service_type` to `:forking`, and the library sets `pid_file` to
 `#{runtime_directory}/#{app_name}.pid` and sets the `PIDFILE` env var to tell
@@ -578,7 +579,7 @@ Set `exec_start_wrap` to the name of the script, e.g.
 `deploy-runtime-environment-wrap` from `mix_deploy`.
 
 In Elixir 1.9+ releases you can use `env.sh`, but this runs earlier
-with elevated permissions, so it may be useful as well.
+with elevated permissions, so this may still be useful.
 
 #### Runtime environment service
 
@@ -706,6 +707,5 @@ env_files: [
 
 # Contacts
 
-I am `jakemorrison` on on the Elixir Slack and Discord, `reachfh` on
-Freenode `#elixir-lang` IRC channel. Happy to chat or help with
-your projects.
+I am `jakemorrison` on on the Elixir Slack and Discord, `reachfh` on Freenode
+`#elixir-lang` IRC channel. Happy to chat or help with your projects.
