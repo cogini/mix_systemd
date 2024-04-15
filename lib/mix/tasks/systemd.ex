@@ -20,8 +20,9 @@ defmodule Mix.Tasks.Systemd do
     mix_config = Mix.Project.config()
 
     IO.puts("============================================================")
-    create_config(IO.inspect(mix_config), IO.inspect(user_config))
+    cfg = create_config(IO.inspect(mix_config), IO.inspect(user_config))
     IO.puts("============================================================")
+    cfg
   end
 
   @doc "Generate cfg based on params"
