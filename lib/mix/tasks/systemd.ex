@@ -35,7 +35,7 @@ defmodule Mix.Tasks.Systemd do
           user_config[:app_name]
 
         is_nil(mix_config[:app]) and Mix.Project.umbrella?() ->
-          mix_config[:default_release] || Enum.at(mix_config[:releases], 0)
+          mix_config[:default_release] || Enum.at(mix_config[:releases], 0) |> elem(0)
       end
 
     # External name, used for files and directories
