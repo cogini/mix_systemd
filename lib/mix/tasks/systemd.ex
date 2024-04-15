@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Systemd do
     mix_config = Mix.Project.config()
 
     IO.puts("============================================================")
-    cfg = create_config(IO.inspect(mix_config), IO.inspect(user_config))
+    cfg = create_config(mix_config, user_config)
     IO.puts("============================================================")
     cfg
   end
@@ -237,7 +237,10 @@ defmodule Mix.Tasks.Systemd do
     ]
 
     # Override values from user config
+    IO.inspect(defaults)
+    IO.inspect(user_config)
     cfg = Keyword.merge(defaults, user_config)
+    IO.inspect(cfg)
 
     # Calcualate values from other things
     cfg =
