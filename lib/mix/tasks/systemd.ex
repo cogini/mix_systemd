@@ -237,10 +237,10 @@ defmodule Mix.Tasks.Systemd do
     ]
 
     # Override values from user config
-    IO.inspect(defaults)
-    IO.inspect(user_config)
+    IO.inspect(defaults[:app_name])
+    IO.inspect(user_config[:app_name])
     cfg = Keyword.merge(defaults, user_config)
-    IO.inspect(cfg)
+    IO.inspect(cfg[:app_name])
 
     # Calcualate values from other things
     cfg =
