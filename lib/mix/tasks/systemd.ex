@@ -19,17 +19,24 @@ defmodule Mix.Tasks.Systemd do
     user_config = Application.get_all_env(@app) |> Keyword.merge(overrides)
     mix_config = Mix.Project.config()
 
-    IO.puts("============================================================")
-    cfg = create_config(mix_config, user_config)
-    IO.puts("============================================================")
-    cfg
+    create_config(mix_config, user_config)
   end
 
   @doc "Generate cfg based on params"
   @spec create_config(Keyword.t(), Keyword.t()) :: Keyword.t()
   def create_config(mix_config, user_config) do
     # Elixir app name, from mix.exs
-    app_name = mix_config[:app]
+    app_name =
+      cond do
+        not is_nil(mix_config[:app]) ->
+          mix_config[:app]
+
+        not is_nil(user_config[:app_name]) ->
+          user_config[:app_name]
+
+        is_nil(mix_config[:app]) and Mix.Project.umbrella?() ->
+          mix_config[:default_release] || Enum.at(mix_config[:releases], 0)
+      end
 
     # External name, used for files and directories
     ext_name =
@@ -237,10 +244,7 @@ defmodule Mix.Tasks.Systemd do
     ]
 
     # Override values from user config
-    IO.inspect(defaults[:app_name])
-    IO.inspect(user_config[:app_name])
     cfg = Keyword.merge(defaults, user_config)
-    IO.inspect(cfg[:app_name])
 
     # Calcualate values from other things
     cfg =
