@@ -19,7 +19,9 @@ defmodule Mix.Tasks.Systemd do
     user_config = Application.get_all_env(@app) |> Keyword.merge(overrides)
     mix_config = Mix.Project.config()
 
-    create_config(mix_config, user_config)
+    IO.puts("============================================================")
+    create_config(IO.inspect(mix_config), IO.inspect(user_config))
+    IO.puts("============================================================")
   end
 
   @doc "Generate cfg based on params"
