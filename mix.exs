@@ -2,11 +2,12 @@ defmodule MixSystemd.MixProject do
   use Mix.Project
 
   @github "https://github.com/cogini/mix_systemd"
+  @version "0.7.6"
 
   def project do
     [
       app: :mix_systemd,
-      version: "0.7.5",
+      version: @version,
       elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
