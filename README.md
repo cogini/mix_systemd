@@ -15,7 +15,7 @@ templates. The goal is that the project defaults will generate a good systemd
 unit file, and standard options support more specialized use cases.
 
 It uses standard systemd functions and conventions to make your app a more
-"native" OS citizen, and takes advantage of systemd features to improve
+"native" OS citizen and takes advantage of systemd features to improve
 security and reliability. While it can be used standalone, more advanced use
 cases use scripts from e.g., [mix_deploy](https://github.com/cogini/mix_deploy).
 
@@ -58,16 +58,16 @@ config :mix_systemd,
 
 There are four different kinds of things that we may want to configure:
 
-1. Static information about application layout, e.g. file paths.
-   This is the same for all machines in an environment, e.g. staging or prod.
+1. Static information about application layout, e.g., file paths.
+   This is the same for all machines in an environment, e.g., staging or prod.
 
-2. Information specific to the environment, e.g. the hostname of the db
+2. Information specific to the environment, e.g., the hostname of the db
    server.
 
-3. Secrets such as db passwords, API keys or encryption keys.
+3. Secrets such as db passwords, API keys, or encryption keys.
 
 4. Dynamic information such as the IP address of the server or other
-   other machines in the cluster.
+   machines in the cluster.
 
 Elixir has a couple of mechanisms for storing configuration. When you compile
 the release, it converts Elixir-format config files like `config/config.exs`
@@ -75,14 +75,13 @@ into an initial application environment that is read by `Application.get_env/3`.
 That's good for simple, relatively static apps. It's not ideal to store
 passwords in the release file, though.
 
-Elixir 1.9 releases support dynamic configuration at runtime. You can run the
-Elixir file `config/runtime.exs` when it boots or use the shell script
-`rel/env.sh.eex` to set environment vars. With these you can theoretically do
-anything. In practice, however, it can be more convenient and secure to process
-the config outside of the app. That's where `mix_systemd` and `mix_deploy` come
-in.
+Elixir 1.9+ releases support dynamic configuration at runtime. You can configure
+via the Elixir file `config/runtime.exs` which is loaded when the VM boots or
+use the shell script `rel/env.sh.eex` to set environment vars.
 
-Beyond that, the configuration process depends on how complex things are.
+With these you can theoretically do anything. In practice, however, it can be
+more convenient and secure to process the config outside of the app. That's
+where `mix_systemd` and `mix_deploy` come in.
 
 ## Environment vars
 
@@ -136,10 +135,9 @@ The question is how to get the environment files onto the server. For simple
 server deployments, we can copy the config to the server when doing the initial
 setup.
 
-
-In cloud environments, we may run from a read-only image, e.g. an
-Amazon AMI, which gets configured at start up based on the environment by
-copying the config from an S3 bucket, e.g.:
+In cloud environments, we may run from a read-only image, e.g., an Amazon AMI,
+which gets configured at start up based on the environment by copying the
+config from an S3 bucket, e.g.:
 
 ```shell
 umask 077
@@ -151,7 +149,7 @@ find /etc/foo -type d -exec chmod 750 {} \;
 
 The following example runs the script `/srv/foo/bin/deploy-sync-config-s3` from
 `mix_deploy`.  It uses an environment file in `/srv/foo/etc/environment`
-to bootstrap the sync, e.g. setting the S3 bucket name. That file
+to bootstrap the sync, e.g., setting the S3 bucket name. That file
 is placed there by CodeDeploy at deploy time.
 
 ```elixir
@@ -318,14 +316,16 @@ into source control and make your own changes.  Contributions are welcome!
 
 ### Basics
 
-`app_name`: Elixir application name, an atom, from the `app` field in the `mix.exs` project.
+`app_name`: Elixir application name, an atom, from the `app` or `app_name`
+field in the `mix.exs` project. For umbrella apps, set `app_name`.
 
-`module_name`: Elixir camel case module name version of `app_name`, e.g. `FooBar`.
+`module_name`: Elixir camel case module name version of `app_name`, e.g.,
+`FooBar`.
 
 `release_name`: Name of release, default `app_name`.
 
-`ext_name`: External name, used for files and directories,
-default `app_name` with underscores converted to "-", e.g. `foo-bar`.
+`ext_name`: External name, used for files and directories, default `app_name`
+with underscores converted to "-", e.g., `foo-bar`.
 
 `service_name`: Name of the systemd service, default `ext_name`.
 
@@ -370,7 +370,7 @@ dirs: [
 
 Recent versions of systemd (since 235) will create these directories at
 start time based on the settings in the unit file. With earlier systemd
-versions, create them beforehand using installation scripts, e.g.
+versions, create them beforehand using installation scripts, e.g.,
 [mix_deploy](https://github.com/cogini/mix_deploy).
 
 For security, we set permissions to 750, more restrictive than the systemd
@@ -392,10 +392,10 @@ versions in common OS releases:
 The library uses a directory structure under `deploy_dir` which supports
 multiple releases, similar to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/).
 
-* `scripts_dir`: deployment scripts which e.g. start and stop the unit, default `bin`.
+* `scripts_dir`: deployment scripts which, e.g., start and stop the unit, default `bin`.
 * `current_dir`: where the current Erlang release is unpacked or referenced by symlink, default `current`.
 * `releases_dir`: where versioned releases are unpacked, default `releases`.
-* `flags_dir`: dir for flag files to trigger restart, e.g. when `restart_method` is `:systemd_flag`, default `flags`.
+* `flags_dir`: dir for flag files to trigger restart, e.g., when `restart_method` is `:systemd_flag`, default `flags`.
 
 When using multiple releases and symlinks, the deployment process works as follows:
 
@@ -430,7 +430,7 @@ expand_keys: [
 
 You can specify values as a list of terms, and it will look up atoms as keys in
 the config. This lets you reference, e.g., the deploy dir or configuration dir without
-having to specify the full path, e.g. `["!", :deploy_dir, "/bin/myscript"]` gets
+having to specify the full path, e.g., `["!", :deploy_dir, "/bin/myscript"]` gets
 converted to `"!/srv/foo/bin/myscript"`.
 
 ### Environment vars
@@ -473,18 +473,18 @@ env_files: [
 ```
 
 The "-" at the beginning makes the file optional; the system will start without it.
-Later values override earlier values, so you can set defaults in the release which get
-overridden in the deployment or runtime environment.
+Later values override earlier values, so you can set defaults which get
+overridden in the local or runtime environment.
 
 
 ### Runtime dirs
 
-The release scripts may need to write temp files and log files, e.g. when
-generating the application config config files. By default, they do this under
-the release dir, e.g. `/srv/foo/current/tmp`.
+The release scripts may need to write temp files and log files, e.g., when
+generating the application config files. By default, they do this under
+the release dir, e.g., `/srv/foo/current/tmp`.
 
 For security, it's better to deploy the app using a different user account from
-the one that the app runs under, making the source files read only. This makes
+the one that the app runs under, with the source files read only. This makes
 it harder for an attacker to make changes to the source and then have the app
 run them.
 
@@ -582,7 +582,7 @@ Set `exec_start_wrap` to the name of the script, e.g.
 `deploy-runtime-environment-wrap` from `mix_deploy`.
 
 In Elixir 1.9+ releases you can use `env.sh`, but this runs earlier
-with elevated permissions, so this may still be useful.
+with elevated permissions, so a wrapper script may still be useful.
 
 #### Runtime environment service
 
