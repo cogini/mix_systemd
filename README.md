@@ -17,7 +17,7 @@ unit file, and standard options support more specialized use cases.
 It uses standard systemd functions and conventions to make your app a more
 "native" OS citizen, and takes advantage of systemd features to improve
 security and reliability. While it can be used standalone, more advanced use
-cases use scripts from e.g. [mix_deploy](https://github.com/cogini/mix_deploy).
+cases use scripts from e.g., [mix_deploy](https://github.com/cogini/mix_deploy).
 
 This [complete example app](https://github.com/cogini/mix-deploy-example) puts the
 pieces together.
@@ -134,7 +134,7 @@ config :foo, FooWeb.Endpoint,
 
 The question is how to get the environment files onto the server. For simple
 server deployments, we can copy the config to the server when doing the initial
-setup. 
+setup.
 
 
 In cloud environments, we may run from a read-only image, e.g. an
