@@ -1,3 +1,6 @@
+![test workflow](https://github.com/cogini/mix_systemd/actions/workflows/test.yml/badge.svg)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
 # mix_systemd
 
 This library generates a
