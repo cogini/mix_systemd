@@ -152,7 +152,7 @@ defmodule Mix.Tasks.Systemd do
 
       # Number of open file descriptors, LimitNOFILE
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=
-      limit_nofile: 65535,
+      limit_nofile: 65_535,
 
       # File mode creation mask, UMask
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=
