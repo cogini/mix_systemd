@@ -26,7 +26,17 @@ defmodule Mix.Tasks.Systemd do
   @spec create_config(Keyword.t(), Keyword.t()) :: Keyword.t()
   def create_config(mix_config, user_config) do
     # Elixir app name, from mix.exs
-    app_name = mix_config[:app]
+    app_name =
+      cond do
+        not is_nil(mix_config[:app]) ->
+          mix_config[:app]
+
+        not is_nil(user_config[:app_name]) ->
+          user_config[:app_name]
+
+        is_nil(mix_config[:app]) and Mix.Project.umbrella?() ->
+          mix_config[:default_release] || Enum.at(mix_config[:releases], 0) |> elem(0)
+      end
 
     # External name, used for files and directories
     ext_name =
