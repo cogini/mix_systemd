@@ -25,3 +25,7 @@ config :mix_systemd,
     "PORT=8080",
     ["RELEASE_TMP=", :runtime_dir]
   ]
+
+config :logger, :default_formatter,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:file, :line]
