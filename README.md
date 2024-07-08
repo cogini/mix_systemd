@@ -1,4 +1,9 @@
 ![test workflow](https://github.com/cogini/mix_systemd/actions/workflows/test.yml/badge.svg)
+[![Module Version](https://img.shields.io/hexpm/v/mix_systemd.svg)](https://hex.pm/packages/mix_systemd)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/mix_systemd/)
+[![Total Download](https://img.shields.io/hexpm/dt/mix_systemd.svg)](https://hex.pm/packages/mix_systemd)
+[![License](https://img.shields.io/hexpm/l/mix_systemd.svg)](https://github.com/cogini/mix_systemd/blob/master/LICENSE.md)
+[![Last Updated](https://img.shields.io/github/last-commit/cogini/mix_systemd.svg)](https://github.com/cogini/mix_systemd/commits/master)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 # mix_systemd
