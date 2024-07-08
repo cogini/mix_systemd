@@ -713,6 +713,10 @@ env_files: [
 ],
 ```
 
+Documentation is here: https://hexdocs.pm/mix_systemd
+
+This project uses the Contributor Covenant version 2.1. Check [CODE_OF_CONDUCT.md](/CODE_OF_CONDUCT.md) for more information.
+
 # Contacts
 
 I am `jakemorrison` on on the Elixir Slack and Discord, `reachfh` on Freenode
