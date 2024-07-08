@@ -2,7 +2,7 @@ defmodule MixSystemd.MixProject do
   use Mix.Project
 
   @github "https://github.com/cogini/mix_systemd"
-  @version "0.8.0"
+  @version "0.8.1"
 
   def project do
     [
