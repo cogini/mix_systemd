@@ -29,7 +29,7 @@ pieces together.
 
 ## Installation
 
-Add `mix_systemd` to the list of dependencies in `mix.exs`:
+Add the package to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
