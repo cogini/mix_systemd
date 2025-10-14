@@ -78,19 +78,11 @@ ProtectKernelTunables=yes
 ProtectControlGroups=yes
 <% end %>
 <%= if systemd_version >= 233 do %>MountAPIVFS=yes<% end %>
-
 # RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 # SELinuxContext=
 # AppArmorProfile=
 # SmackProcessLabel=
-
 <% end %>
-
-# KillMode=process # default control-group
-# TimeoutSec=10
-# RemainAfterExit=no
-# https://elixirforum.com/t/distillery-node-is-not-running-and-non-zero-exit-code/3834
-# SuccessExitStatus=143
 
 [Install]
 WantedBy=multi-user.target
