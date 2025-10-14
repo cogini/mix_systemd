@@ -1,6 +1,7 @@
 [Unit]
 Description=<%= service_name %> service
-After=local-fs.target network.target<%= for target <- unit_after_targets do %> <%= target %><% end %>
+After=local-fs.target network.target
+<%= for target <- unit_after_targets do %> <%= target %><% end %>
 
 [Service]
 Type=<%= service_type %>
