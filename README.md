@@ -296,8 +296,9 @@ config file that is also executed is the worst case scenario.
 
 ## Usage
 
-First, use the `systemd.init` task to copy the default template files from the
-library to the `rel/templates/systemd` directory in your project.
+First, use the `systemd.init` task to copy the default template files from `mix_systemd`
+to the `rel/templates/systemd` directory in your project. Copying them allows you to make local customizations
+if necessary.
 
 ```shell
 mix systemd.init
