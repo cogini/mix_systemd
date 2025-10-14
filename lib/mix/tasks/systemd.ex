@@ -164,6 +164,9 @@ defmodule Mix.Tasks.Systemd do
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=
       limit_nofile: 65_535,
 
+      # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=
+      limit_core: nil,
+
       # File mode creation mask, UMask
       # https://www.freedesktop.org/software/systemd/man/systemd.exec.html#UMask=
       umask: "0027",
@@ -211,6 +214,12 @@ defmodule Mix.Tasks.Systemd do
       # Wrapper script for ExecStart
       exec_start_wrap: nil,
 
+      # Specify ExecStart command
+      exec_start: nil,
+
+      # Specify ExecStop command
+      exec_stop: nil,
+
       # Start unit after other systemd unit targets
       unit_after_targets: [],
 
@@ -231,8 +240,10 @@ defmodule Mix.Tasks.Systemd do
         :env_files,
         :env_vars,
         :runtime_environment_service_script,
+        :exec_start,
         :exec_start_pre,
         :exec_start_wrap,
+        :exec_stop,
         :read_write_paths,
         :read_only_paths,
         :inaccessible_paths
