@@ -13,12 +13,12 @@ ExecStartPre=<%= command %>
 <% end %>
 <%= if exec_start do %>
 ExecStart=<%= exec_start %>
-<%= else %>
+<% else %>
 ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{release_name} #{start_command}" %>
 <% end %>
 <%= if exec_stop do %>
 ExecStop=<%= exec_stop %>
-<%= else %>
+<% else %>
 ExecStop=<%= "#{current_dir}/bin/#{release_name} stop" %>
 <% end %>
 Environment=LANG=<%= env_lang %>
