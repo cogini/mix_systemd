@@ -11,8 +11,16 @@ WorkingDirectory=<%= working_dir %>
 <%= for command <- exec_start_pre do %>
 ExecStartPre=<%= command %>
 <% end %>
+<%= if exec_start do %>
+ExecStart=<%= exec_start %>
+<%= else %>
 ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{release_name} #{start_command}" %>
+<% end %>
+<%= if exec_stop do %>
+ExecStop=<%= exec_stop %>
+<%= else %>
 ExecStop=<%= "#{current_dir}/bin/#{release_name} stop" %>
+<% end %>
 Environment=LANG=<%= env_lang %>
 Environment=MIX_ENV=<%= mix_env %>
 <%= if :runtime in dirs do %>Environment=RUNTIME_DIR=<%= runtime_dir %><% end %>
