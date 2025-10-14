@@ -2,11 +2,6 @@
 Description=<%= service_name %> service
 After=local-fs.target network.target<%= for target <- unit_after_targets do %> <%= target %><% end %>
 
-<%#
-# https://www.freedesktop.org/software/systemd/man/systemd.exec.html
-# https://www.freedesktop.org/software/systemd/man/systemd.service.html
-# https://github.com/systemd/systemd/blob/master/NEWS
-%>
 [Service]
 Type=<%= service_type %>
 User=<%= app_user %>
