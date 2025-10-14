@@ -147,7 +147,7 @@ config from an S3 bucket, e.g.:
 ```shell
 umask 077
 aws s3 sync --exact-timestamps --no-progress "s3://${CONFIG_BUCKET}/" "/etc/foo/"
-chown -R $DEPLOY_USER:$APP_GROUP /etc/foo
+chown -R "$DEPLOY_USER:$APP_GROUP" /etc/foo
 find /etc/foo -type f -exec chmod 640 {} \;
 find /etc/foo -type d -exec chmod 750 {} \;
 ```
