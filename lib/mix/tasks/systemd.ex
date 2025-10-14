@@ -199,6 +199,15 @@ defmodule Mix.Tasks.Systemd do
       # https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStartPre=
       exec_start_pre: [],
 
+      # Wrapper script for ExecStart
+      exec_start_wrap: nil,
+
+      # Explicit ExecStart command
+      exec_start: nil,
+
+      # Explicit ExecStop command
+      exec_stop: nil,
+
       # Whether the service shall be restarted when the service process exits, is killed, or times out
       # https://www.freedesktop.org/software/systemd/man/systemd.service.html#Restart=
       restart: "always",
@@ -210,15 +219,6 @@ defmodule Mix.Tasks.Systemd do
       # Time to wait for start-up
       # https://www.freedesktop.org/software/systemd/man/systemd.service.html#TimeoutStartSec=
       timeout_start_sec: nil,
-
-      # Wrapper script for ExecStart
-      exec_start_wrap: nil,
-
-      # Specify ExecStart command
-      exec_start: nil,
-
-      # Specify ExecStop command
-      exec_stop: nil,
 
       # Start unit after other systemd unit targets
       unit_after_targets: [],
