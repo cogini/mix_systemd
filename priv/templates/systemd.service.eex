@@ -30,7 +30,8 @@ Environment=<%= env %>
 Environment=PIDFILE=<%= pid_file %>
 PIDFile=<%= pid_file %>
 <% end %>
-LimitNOFILE=<%= limit_nofile %>
+<%= if limit_nofile do %>LimitNOFILE=<%= limit_nofile %><% end %>
+<%= if limit_core do %>LimitCORE=<%= limit_core %><% end %>
 UMask=<%= umask %>
 SyslogIdentifier=<%= syslog_identifier %>
 Restart=<%= restart %>
