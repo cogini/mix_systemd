@@ -13,14 +13,14 @@ ExecStartPre=<%= command %>
 <% end %>
 <%= if exec_start != "" do %>ExecStart=<%= exec_start %><% else %>ExecStart=<%= "#{exec_start_wrap}#{current_dir}/bin/#{release_name} #{start_command}" %><% end %>
 <%= if exec_stop != "" do %>ExecStop=<%= exec_stop %><% else %>ExecStop=<%= "#{current_dir}/bin/#{release_name} stop" %><% end %>
-Environment=LANG=<%= env_lang %>
-Environment=MIX_ENV=<%= mix_env %>
 <%= if :runtime in dirs do %>Environment=RUNTIME_DIR=<%= runtime_dir %><% end %>
 <%= if :configuration in dirs do %>Environment=CONFIGURATION_DIR=<%= configuration_dir %><% end %>
 <%= if :logs in dirs do %>Environment=LOGS_DIR=<%= logs_dir %><% end %>
 <%= if :cache in dirs do %>Environment=CACHE_DIR=<%= cache_dir %><% end %>
 <%= if :state in dirs do %>Environment=STATE_DIR=<%= state_dir %><% end %>
 <%= if :tmp in dirs do %>Environment=TMP_DIR=<%= tmp_dir %><% end %>
+<%= if env_lang && env_lang != "" do %>Environment=LANG=<%= env_lang %><% end %>
+<%= if mix_env && mix_env != "" do %>Environment=MIX_ENV=<%= mix_env %><% end %>
 <%= for file <- env_files do %>
 EnvironmentFile=<%= file %>
 <% end %>
