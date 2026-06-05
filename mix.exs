@@ -67,7 +67,7 @@ defmodule MixSystemd.MixProject do
   end
 
   defp description do
-    "Generates systemd unit files for an application."
+    "Generate systemd unit files for an application."
   end
 
   defp package do
